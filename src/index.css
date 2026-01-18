@@ -1567,6 +1567,7 @@
   background-color: #90EE90; /* Light green background */
   background-image: linear-gradient(135deg, #90EE90 0%, #B0E57C 100%); /* Subtle gradient */
 }
+
 .login-logo {
   width: 20rem;  /* Increased from 6rem – adjust as needed */
   margin: 0 auto 3rem;
@@ -1579,7 +1580,7 @@
   border-radius: 1rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   width: 100%;
-  max-width: 28rem;
+  max-width: 800px; /* Increased from 28rem for better content display */
   text-align: center;
   animation: fadeIn 0.8s ease-in-out; /* Fade-in animation */
 }
@@ -1627,6 +1628,61 @@
   color: #001F3F; /* Navy blue */
   font-size: 1rem;
   margin-bottom: 2rem;
+}
+
+.dash-requirements {
+  text-align: left;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: #f9f9f9;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+}
+
+.dash-requirements h3 {
+  font-size: 1.5rem;
+  color: #001F3F;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.req-section {
+  margin-bottom: 1.5rem;
+}
+
+.req-section h4 {
+  font-size: 1.25rem;
+  color: #001F3F;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.req-section ol, .req-section ul {
+  padding-left: 1.5rem;
+  line-height: 1.6;
+}
+
+.req-section li {
+  margin-bottom: 0.25rem;
+}
+
+.dash-link {
+  color: #90EE90;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.dash-link:hover {
+  color: #7BC97B;
+  text-decoration: underline;
+}
+
+.dash-note {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-top: 1rem;
+  font-style: italic;
 }
 
 .dash-button {
