@@ -22,9 +22,9 @@ export default function StudentRequirements({ onNext }) {
     emailAddress: "",
   });
   const [educationalQualifications, setEducationalQualifications] = useState({
-    primary: { specialization: "", level: "", schoolName: "", period: "", grade: "" },
-    secondary: { specialization: "", level: "", schoolName: "", period: "", grade: "" },
-    postSecondary: { specialization: "", level: "", schoolName: "", period: "", grade: "" },
+    primary: { level: "", schoolName: "", period: "", grade: "" },
+    secondary: { level: "", schoolName: "", period: "", grade: "" },
+    postSecondary: { level: "", schoolName: "", period: "", grade: "" },
   });
 
   const handlePersonalChange = (e) => {
@@ -238,12 +238,6 @@ export default function StudentRequirements({ onNext }) {
           <h4>a. Primary School</h4>
           <div className="req-grid">
             <input
-              placeholder="Specialization"
-              value={educationalQualifications.primary.specialization}
-              onChange={(e) => handleEducationChange("primary", "specialization", e.target.value)}
-              className="req-input"
-            />
-            <input
               placeholder="Level"
               value={educationalQualifications.primary.level}
               onChange={(e) => handleEducationChange("primary", "level", e.target.value)}
@@ -273,12 +267,6 @@ export default function StudentRequirements({ onNext }) {
           <h4>b. Secondary School</h4>
           <div className="req-grid">
             <input
-              placeholder="Specialization"
-              value={educationalQualifications.secondary.specialization}
-              onChange={(e) => handleEducationChange("secondary", "specialization", e.target.value)}
-              className="req-input"
-            />
-            <input
               placeholder="Level"
               value={educationalQualifications.secondary.level}
               onChange={(e) => handleEducationChange("secondary", "level", e.target.value)}
@@ -307,12 +295,6 @@ export default function StudentRequirements({ onNext }) {
         <div className="education-section">
           <h4>c. Post-Secondary</h4>
           <div className="req-grid">
-            <input
-              placeholder="Specialization"
-              value={educationalQualifications.postSecondary.specialization}
-              onChange={(e) => handleEducationChange("postSecondary", "specialization", e.target.value)}
-              className="req-input"
-            />
             <input
               placeholder="Level"
               value={educationalQualifications.postSecondary.level}

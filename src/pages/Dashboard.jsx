@@ -42,7 +42,7 @@ export default function Dashboard() {
               <li>Employment letter (if employed) or Business Registration Documents (if self-employed)</li>
               <li>Bank statement for the last 6 months</li>
               <li>Three recent Pay Slips</li>
-              <li>Loan Security: 2 Guarantors and/or Title Deed, Car Log Book where applicable.</li>
+              <li>Loan Security: 2 Guarantors for Undergraduate, UUSSP & Diploma. 1 Guarantor for Postgraduate .</li>
             </ol>
           </div>
 
@@ -62,6 +62,11 @@ export default function Dashboard() {
               <li>
                 <a href="/imam-recommendation.pdf" download className="dash-link">
                   ⬇️ Download Imam Recommendation Form (for Undergraduate, UUSSP, and Diploma)
+                </a>
+              </li>
+              <li>
+                <a href="/guarantor-application.pdf" download className="dash-link">
+                  ⬇️ Download Guarantor Application Form Consent
                 </a>
               </li>
             </ul>

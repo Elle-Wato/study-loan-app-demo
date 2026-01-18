@@ -1291,6 +1291,24 @@
   }
 }
 
+.guar-instructions {
+  background-color: #f9f9f9;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  margin-bottom: 2rem;
+}
+
+.guar-instructions h3 {
+  color: #001F3F;
+  margin-bottom: 0.5rem;
+}
+
+.guar-instructions ol {
+  padding-left: 1.5rem;
+  line-height: 1.6;
+}
+
 .guar-text {
   color: #001F3F; /* Navy blue */
   font-size: 1rem;
@@ -1313,6 +1331,13 @@
   text-align: center;
 }
 
+.guar-section h5 {
+  font-size: 1.1rem;
+  color: #001F3F;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
 .guar-grid {
   display: grid;
   grid-template-columns: 1fr 1fr; /* Two columns on larger screens */
@@ -1320,10 +1345,9 @@
   margin-bottom: 2rem;
 }
 
-.guar-item {
+.guar-field {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
 }
 
 .guar-label {
@@ -1331,6 +1355,27 @@
   color: #001F3F;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
+}
+
+.guar-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.guar-input:focus {
+  border-color: #90EE90;
+  box-shadow: 0 0 0 3px rgba(144, 238, 144, 0.3);
+}
+
+.guar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .guar-link {
