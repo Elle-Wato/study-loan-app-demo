@@ -1276,7 +1276,7 @@
   padding: 2rem;
   border-radius: 1rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  max-width: 800px; /* Wider for multiple fields */
+  max-width: 600px; /* Compact for fields */
   margin: 0 auto;
 }
 
@@ -1291,14 +1291,24 @@
   }
 }
 
-.guar-group {
+.guar-text {
+  color: #001F3F; /* Navy blue */
+  font-size: 1rem;
   margin-bottom: 2rem;
+  text-align: center;
 }
 
-.guar-heading {
+.guar-guarantor {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+}
+
+.guar-guarantor h4 {
   font-size: 1.25rem;
-  font-weight: bold;
-  color: #001F3F; /* Navy blue */
+  color: #001F3F;
   margin-bottom: 1rem;
   text-align: center;
 }
@@ -1307,35 +1317,38 @@
   display: grid;
   grid-template-columns: 1fr 1fr; /* Two columns on larger screens */
   gap: 1.5rem 2rem; /* Vertical and horizontal gaps */
+  margin-bottom: 2rem;
 }
 
-.guar-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  outline: none;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-  color: #001F3F; /* Navy blue text */
-}
-
-.guar-input:focus {
-  border-color: #90EE90; /* Light green focus */
-  box-shadow: 0 0 0 3px rgba(144, 238, 144, 0.3);
-  transform: scale(1.02);
-}
-
-.guar-field {
+.guar-item {
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
 }
 
 .guar-label {
   font-weight: 600;
-  color: #001F3F; /* Navy blue */
+  color: #001F3F;
   margin-bottom: 0.5rem;
-  font-size: 1rem;
+  font-size: 0.9rem;
+}
+
+.guar-link {
+  display: inline-block;
+  background-color: #90EE90; /* Light green */
+  color: #001F3F; /* Navy blue */
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.guar-link:hover {
+  background-color: #7BC97B; /* Darker green on hover */
+  transform: scale(1.05);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
 }
 
 .guar-file {
@@ -1390,15 +1403,15 @@
   box-shadow: 0 10px 20px rgba(107, 114, 128, 0.3);
 }
 
-.guar-button-complete {
-  background-color: #90EE90; /* Light green for complete button */
-  color: #001F3F; /* Navy blue text */
+.guar-button-next {
+  background-color: #001F3F; /* Navy blue */
+  color: white;
 }
 
-.guar-button-complete:hover {
-  background-color: #7BC97B; /* Darker green on hover */
+.guar-button-next:hover {
+  background-color: #003366; /* Lighter navy on hover */
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 10px 20px rgba(144, 238, 144, 0.3);
+  box-shadow: 0 10px 20px rgba(0, 31, 63, 0.3);
 }
 
 .guar-button:active {
@@ -1420,7 +1433,6 @@
     align-items: center;
   }
 }
-
 /* Styles for Register page */
 .reg-bg {
   min-height: 100vh;

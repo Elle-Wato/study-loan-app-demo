@@ -136,47 +136,6 @@ const ConsentPage = ({ onBack }) => {
             </div>
           </div>
 
-          {/* Guarantor Section */}
-          <div className="consent-section">
-            <h2>Guarantor Consent</h2>
-            <p className="consent-intro">
-              I consent to the collection, processing, transmission, and storage by the Trust in any form whatsoever, of any data of a professional or personal nature that have been provided by the applicant as stipulated in page one of the requirements which is necessary for the purposes of the loan application.
-            </p>
-            <div className="form-group">
-              <label>Guarantor Name:</label>
-              <input
-                type="text"
-                name="guarantorName"
-                value={formData.guarantorName}
-                onChange={handleInputChange}
-                required
-                placeholder="Enter full name"
-              />
-            </div>
-            <div className="form-group">
-              <label>Signature:</label>
-              <div className="signature-container">
-                <SignatureCanvas
-                  ref={guarantorSigRef}
-                  canvasProps={{ className: "signature-canvas" }}
-                />
-                <button type="button" onClick={() => clearSignature(guarantorSigRef)} className="clear-btn">
-                  Clear
-                </button>
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Date:</label>
-              <input
-                type="date"
-                name="guarantorDate"
-                value={formData.guarantorDate}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </div>
-
           <div className="consent-buttons">
             <button type="button" onClick={handleBack} className="consent-button consent-button-back">
               ⬅️ Back

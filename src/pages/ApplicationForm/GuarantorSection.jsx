@@ -1,172 +1,62 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import Section from "../../components/Section";
 
-const ConsentPage = ({ onBack }) => {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    studentName: "",
-    studentSignature: "",
-    studentDate: "",
-    guardianName: "",
-    guardianSignature: "",
-    guardianDate: "",
-    guarantorName: "",
-    guarantorSignature: "",
-    guarantorDate: "",
-  });
+export default function GuarantorSection({ onNext, onBack, program }) { // Assuming program is passed as prop from parent
+  const isPostgraduate = program === "Postgraduate"; // Adjust based on your program values
+  const numGuarantors = isPostgraduate ? 1 : 2;
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Consent Form Data:", formData);
-    // TODO: Send to backend or handle submission (e.g., API call)
-    // Navigate to success page
-    navigate("/success");
+  const handleNext = () => {
+    // You can add validation here if needed (e.g., check required fields)
+    onNext(); // Move to next section
   };
 
   const handleBack = () => {
-    if (onBack) onBack();
+    onBack(); // Go back to previous section
   };
 
   return (
-    <div className="consent-bg">
-      <div className="consent-container">
-        <h1 className="consent-title">Consent Form for Loan Application</h1>
-        <p className="consent-intro">
-          I (We) consent to the collection, processing, transmission, and storage by the Trust in any form whatsoever, of any data of a professional or personal nature that have been provided by the applicant as stipulated in page one of the requirements which is necessary for the purposes of the loan application.
-        </p>
+    <Section title="Guarantor Details & Application" className="guar-section">
+      <p className="guar-text">
+        📝 Download, print, fill, sign, then upload the documents below. 
+        <br />
+        <strong>Note:</strong> For Postgraduate programs, only 1 guarantor is required. For other programs, 2 guarantors are needed.
+      </p>
 
-        <form onSubmit={handleSubmit} className="consent-form">
-          {/* Student Section */}
-          <div className="consent-section">
-            <h2>Student Consent</h2>
-            <div className="form-group">
-              <label>Student Name:</label>
-              <input
-                type="text"
-                name="studentName"
-                value={formData.studentName}
-                onChange={handleInputChange}
-                required
-                placeholder="Enter full name"
-              />
+      {Array.from({ length: numGuarantors }, (_, index) => (
+        <div key={index} className="guar-guarantor">
+          <h4>Guarantor {index + 1}</h4>
+          <div className="guar-grid">
+            <div className="guar-item">
+              <a href="/guarantor-agreement.pdf" download className="guar-link">
+                ⬇️ Download Guarantor Application Form
+              </a>
+              <input type="file" className="guar-file" />
             </div>
-            <div className="form-group">
-              <label>Signature (Type Full Name):</label>
-              <input
-                type="text"
-                name="studentSignature"
-                value={formData.studentSignature}
-                onChange={handleInputChange}
-                required
-                placeholder="Type your full name as signature"
-              />
+            <div className="guar-item">
+              <label className="guar-label">🆔 Copy of ID</label>
+              <input type="file" className="guar-file" />
             </div>
-            <div className="form-group">
-              <label>Date:</label>
-              <input
-                type="date"
-                name="studentDate"
-                value={formData.studentDate}
-                onChange={handleInputChange}
-                required
-              />
+            <div className="guar-item">
+              <label className="guar-label">📸 Passport Size Photo</label>
+              <input type="file" className="guar-file" />
             </div>
           </div>
+        </div>
+      ))}
 
-          {/* Guardian Section */}
-          <div className="consent-section">
-            <h2>Guardian Consent</h2>
-            <div className="form-group">
-              <label>Guardian Name:</label>
-              <input
-                type="text"
-                name="guardianName"
-                value={formData.guardianName}
-                onChange={handleInputChange}
-                required
-                placeholder="Enter full name"
-              />
-            </div>
-            <div className="form-group">
-              <label>Signature (Type Full Name):</label>
-              <input
-                type="text"
-                name="guardianSignature"
-                value={formData.guardianSignature}
-                onChange={handleInputChange}
-                required
-                placeholder="Type your full name as signature"
-              />
-            </div>
-            <div className="form-group">
-              <label>Date:</label>
-              <input
-                type="date"
-                name="guardianDate"
-                value={formData.guardianDate}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </div>
-
-          {/* Guarantor Section */}
-          <div className="consent-section">
-            <h2>Guarantor Consent</h2>
-            <p className="consent-intro">
-              I consent to the collection, processing, transmission, and storage by the Trust in any form whatsoever, of any data of a professional or personal nature that have been provided by the applicant as stipulated in page one of the requirements which is necessary for the purposes of the loan application.
-            </p>
-            <div className="form-group">
-              <label>Guarantor Name:</label>
-              <input
-                type="text"
-                name="guarantorName"
-                value={formData.guarantorName}
-                onChange={handleInputChange}
-                required
-                placeholder="Enter full name"
-              />
-            </div>
-            <div className="form-group">
-              <label>Signature (Type Full Name):</label>
-              <input
-                type="text"
-                name="guarantorSignature"
-                value={formData.guarantorSignature}
-                onChange={handleInputChange}
-                required
-                placeholder="Type your full name as signature"
-              />
-            </div>
-            <div className="form-group">
-              <label>Date:</label>
-              <input
-                type="date"
-                name="guarantorDate"
-                value={formData.guarantorDate}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="consent-buttons">
-            <button type="button" onClick={handleBack} className="consent-button consent-button-back">
-              ⬅️ Back
-            </button>
-            <button type="submit" className="consent-button consent-button-submit">
-              ✅ Submit Consent
-            </button>
-          </div>
-        </form>
+      <div className="guar-buttons">
+        <button
+          onClick={handleBack}
+          className="guar-button guar-button-back"
+        >
+          ⬅️ Back
+        </button>
+        <button
+          onClick={handleNext}
+          className="guar-button guar-button-next"
+        >
+          ➡️ Next
+        </button>
       </div>
-    </div>
+    </Section>
   );
-};
-
-export default ConsentPage;
+}
