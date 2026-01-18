@@ -75,7 +75,7 @@ export default function GuarantorSection({ onNext, onBack, program }) {
       </div>
 
       <p className="guar-text">
-        📝 Download, print, fill, sign, then upload the documents below. 
+        📝 Fill out the form below and upload the required documents.
         <br />
         <strong>Note:</strong> For Postgraduate programs, only 1 guarantor is required. For other programs, 2 guarantors are needed.
       </p>
@@ -363,33 +363,34 @@ export default function GuarantorSection({ onNext, onBack, program }) {
             </div>
           </div>
 
-          {/* Document Uploads */}
-          <div className="guar-grid">
-            <div className="guar-item">
-              <a href="/guarantor-consent.pdf" download className="guar-link">
-                ⬇️ Download Guarantor Consent Form
-              </a>
-              <input
-                type="file"
-                onChange={(e) => handleFileChange(index, "consentFile", e.target.files[0])}
-                className="guar-file"
-              />
-            </div>
-            <div className="guar-item">
-              <label className="guar-label">🆔 Upload ID</label>
-              <input
-                type="file"
-                onChange={(e) => handleFileChange(index, "idFile", e.target.files[0])}
-                className="guar-file"
-              />
-            </div>
-            <div className="guar-item">
-              <label className="guar-label">📸 Upload Passport Size Photo</label>
-              <input
-                type="file"
-                onChange={(e) => handleFileChange(index, "photoFile", e.target.files[0])}
-                className="guar-file"
-              />
+          {/* Attachments */}
+          <div className="guar-section">
+            <h5>Attachments</h5>
+            <div className="guar-grid">
+              <div className="guar-item">
+                <label className="guar-label">📄 Upload Signed Consent Form</label>
+                <input
+                  type="file"
+                  onChange={(e) => handleFileChange(index, "consentFile", e.target.files[0])}
+                  className="guar-file"
+                />
+              </div>
+              <div className="guar-item">
+                <label className="guar-label">🆔 Upload Copy of Identity Card</label>
+                <input
+                  type="file"
+                  onChange={(e) => handleFileChange(index, "idFile", e.target.files[0])}
+                  className="guar-file"
+                />
+              </div>
+              <div className="guar-item">
+                <label className="guar-label">📸 Upload Passport Size Photo</label>
+                <input
+                  type="file"
+                  onChange={(e) => handleFileChange(index, "photoFile", e.target.files[0])}
+                  className="guar-file"
+                />
+              </div>
             </div>
           </div>
         </div>

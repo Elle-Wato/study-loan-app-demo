@@ -56,14 +56,10 @@ export default function Dashboard() {
               </li>
               <li>
                 <a href="/chief-recommendation.pdf" download className="dash-link">
-                  ⬇️ Download Chief Recommendation Form (for Undergraduate, UUSSP, and Diploma)
+                  ⬇️ Download Chief & Imam Recommendation Form (for Undergraduate, UUSSP, and Diploma)
                 </a>
               </li>
-              <li>
-                <a href="/imam-recommendation.pdf" download className="dash-link">
-                  ⬇️ Download Imam Recommendation Form (for Undergraduate, UUSSP, and Diploma)
-                </a>
-              </li>
+              
               <li>
                 <a href="/guarantor-application.pdf" download className="dash-link">
                   ⬇️ Download Guarantor Application Form Consent

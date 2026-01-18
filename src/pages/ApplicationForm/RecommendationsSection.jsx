@@ -13,20 +13,11 @@ export default function RecommendationsSection({ onNext, onBack }) {
   return (
     <Section title="J & K. Community Recommendations" className="rec-section">
       <p className="rec-text">
-        📝 Download, print, stamp, sign, then upload the documents below.
+        📝 Upload the stamped and signed Chief and Imam recommendation.
       </p>
 
       <div className="rec-grid">
         <div className="rec-item">
-          <a href="/chief-recommendation.pdf" download className="rec-link">
-            ⬇️ Download Chief Recommendation Form
-          </a>
-          <input type="file" className="rec-file" />
-        </div>
-        <div className="rec-item">
-          <a href="/imam-recommendation.pdf" download className="rec-link">
-            ⬇️ Download Imam Recommendation Form
-          </a>
           <input type="file" className="rec-file" />
         </div>
       </div>
@@ -48,4 +39,3 @@ export default function RecommendationsSection({ onNext, onBack }) {
     </Section>
   );
 }
-

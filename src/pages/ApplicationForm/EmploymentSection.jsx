@@ -66,17 +66,12 @@ export default function EmploymentDetails({ onNext, onBack }) {
           <input type="file" multiple className="emp-file" />
         </div>
         <div className="emp-field">
-          <label className="emp-label">✍️ HR Stamp & Supervisor Signature (Scanned)</label>
+          <label className="emp-label">✍️ Upload HR Stamp & Supervisor Signature (Scanned)</label>
           <input type="file" className="emp-file" />
         </div>
       </div>
 
-      <p className="emp-download">
-        <strong>📥 Download HR Form:</strong>{" "}
-        <a href="/hr-form.pdf" download className="emp-link">
-          Download HR Stamp Form
-        </a>
-      </p>
+    
 
       <div className="emp-buttons">
         <button
