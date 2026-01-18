@@ -18,6 +18,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/apply" element={<ApplicationForm />} />
         <Route path="/success" element={<Success />} />
+       
 
         {/* Optional: 404 fallback */}
         <Route path="*" element={<h2>Page Not Found</h2>} />

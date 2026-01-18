@@ -1,19 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import SignatureCanvas from "react-signature-canvas";
 
 const ConsentPage = ({ onBack }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     studentName: "",
-    studentSignature: "",
     studentDate: "",
     guardianName: "",
-    guardianSignature: "",
     guardianDate: "",
     guarantorName: "",
-    guarantorSignature: "",
     guarantorDate: "",
   });
+
+  const studentSigRef = useRef(null);
+  const guardianSigRef = useRef(null);
+  const guarantorSigRef = useRef(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -22,7 +24,20 @@ const ConsentPage = ({ onBack }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Consent Form Data:", formData);
+    // Get signature data as base64 images
+    const studentSignature = studentSigRef.current?.getTrimmedCanvas().toDataURL("image/png");
+    const guardianSignature = guardianSigRef.current?.getTrimmedCanvas().toDataURL("image/png");
+    const guarantorSignature = guarantorSigRef.current?.getTrimmedCanvas().toDataURL("image/png");
+
+    // Combine form data
+    const fullData = {
+      ...formData,
+      studentSignature,
+      guardianSignature,
+      guarantorSignature,
+    };
+
+    console.log("Consent Form Data:", fullData);
     // TODO: Send to backend or handle submission (e.g., API call)
     // Navigate to success page
     navigate("/success");
@@ -30,6 +45,10 @@ const ConsentPage = ({ onBack }) => {
 
   const handleBack = () => {
     if (onBack) onBack();
+  };
+
+  const clearSignature = (ref) => {
+    ref.current?.clear();
   };
 
   return (
@@ -56,15 +75,16 @@ const ConsentPage = ({ onBack }) => {
               />
             </div>
             <div className="form-group">
-              <label>Signature (Type Full Name):</label>
-              <input
-                type="text"
-                name="studentSignature"
-                value={formData.studentSignature}
-                onChange={handleInputChange}
-                required
-                placeholder="Type your full name as signature"
-              />
+              <label>Signature:</label>
+              <div className="signature-container">
+                <SignatureCanvas
+                  ref={studentSigRef}
+                  canvasProps={{ className: "signature-canvas" }}
+                />
+                <button type="button" onClick={() => clearSignature(studentSigRef)} className="clear-btn">
+                  Clear
+                </button>
+              </div>
             </div>
             <div className="form-group">
               <label>Date:</label>
@@ -93,15 +113,16 @@ const ConsentPage = ({ onBack }) => {
               />
             </div>
             <div className="form-group">
-              <label>Signature (Type Full Name):</label>
-              <input
-                type="text"
-                name="guardianSignature"
-                value={formData.guardianSignature}
-                onChange={handleInputChange}
-                required
-                placeholder="Type your full name as signature"
-              />
+              <label>Signature:</label>
+              <div className="signature-container">
+                <SignatureCanvas
+                  ref={guardianSigRef}
+                  canvasProps={{ className: "signature-canvas" }}
+                />
+                <button type="button" onClick={() => clearSignature(guardianSigRef)} className="clear-btn">
+                  Clear
+                </button>
+              </div>
             </div>
             <div className="form-group">
               <label>Date:</label>
@@ -133,15 +154,16 @@ const ConsentPage = ({ onBack }) => {
               />
             </div>
             <div className="form-group">
-              <label>Signature (Type Full Name):</label>
-              <input
-                type="text"
-                name="guarantorSignature"
-                value={formData.guarantorSignature}
-                onChange={handleInputChange}
-                required
-                placeholder="Type your full name as signature"
-              />
+              <label>Signature:</label>
+              <div className="signature-container">
+                <SignatureCanvas
+                  ref={guarantorSigRef}
+                  canvasProps={{ className: "signature-canvas" }}
+                />
+                <button type="button" onClick={() => clearSignature(guarantorSigRef)} className="clear-btn">
+                  Clear
+                </button>
+              </div>
             </div>
             <div className="form-group">
               <label>Date:</label>
