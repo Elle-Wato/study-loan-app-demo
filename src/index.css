@@ -212,6 +212,20 @@
   }
 }
 
+.req-section h3 {
+  font-size: 1.5rem;
+  color: #001F3F;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.req-section h4 {
+  font-size: 1.25rem;
+  color: #001F3F;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
 .req-grid {
   display: grid;
   grid-template-columns: 1fr 1fr; /* Two columns on larger screens */
@@ -229,6 +243,22 @@
   color: #001F3F; /* Navy blue */
   margin-bottom: 0.5rem;
   font-size: 1rem;
+}
+
+.req-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.req-input:focus {
+  border-color: #90EE90; /* Light green focus */
+  box-shadow: 0 0 0 3px rgba(144, 238, 144, 0.3);
+  transform: scale(1.02);
 }
 
 .req-select {
@@ -292,6 +322,19 @@
 
 .req-button:active {
   transform: translateY(0) scale(1);
+}
+
+.education-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.education-section h4 {
+  margin-bottom: 0.5rem;
+  color: #001F3F;
 }
 
 /* Responsive: Single column on mobile */
