@@ -13,6 +13,8 @@ export default function Login() {
     navigate("/dashboard"); // redirect after login
   };
 
+  const currentYear = new Date().getFullYear(); // Get the current year dynamically
+
   return (
     <div className="login-bg">
       <div className="page-container">
@@ -87,7 +89,7 @@ export default function Login() {
           </p>
         </div>
         <footer className="page-footer">
-          <p>&copy; 2023 Your Company. All rights reserved. | Contact Us: support@company.com</p>
+          <p>&copy; {currentYear} Elimisha Trust. All rights reserved. | Contact Us: applications@elimishatrust.or.ke </p>
         </footer>
       </div>
     </div>
