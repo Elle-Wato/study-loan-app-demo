@@ -1,16 +1,46 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";  // Install with: npm install axios
 import logo from "../assets/logo.png";
+
+const API_BASE_URL = "http://127.0.0.1:5000";  // Update to your deployed backend URL later
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // TODO: Add authentication logic here
-    navigate("/dashboard"); // redirect after login
+    setError("");
+    setSuccess("");
+    setLoading(true);
+
+    try {
+      // Send login request to backend
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+        email,
+        password
+      }, {
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+      // Store JWT token in localStorage
+      localStorage.setItem('token', response.data.token);
+
+      setSuccess("Login successful! Redirecting...");
+      setTimeout(() => navigate("/dashboard"), 1000);  // Redirect to dashboard
+    } catch (err) {
+      // Handle errors (e.g., invalid credentials)
+      setError(err.response?.data?.error || "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const currentYear = new Date().getFullYear(); // Get the current year dynamically
@@ -45,6 +75,9 @@ export default function Login() {
             Student Login
           </h2>
 
+          {error && <p className="error-message" style={{ color: "red" }}>{error}</p>}
+          {success && <p className="success-message" style={{ color: "green" }}>{success}</p>}
+
           <form onSubmit={handleLogin} className="login-form">
             <div>
               <label className="login-label">Email Address</label>
@@ -73,8 +106,9 @@ export default function Login() {
             <button
               type="submit"
               className="login-button"
+              disabled={loading}
             >
-              🔐 Login
+              {loading ? "🔐 Logging in..." : "🔐 Login"}
             </button>
           </form>
 
