@@ -19,7 +19,7 @@ def register():
         student = Student(user_id=user.id)
         db.session.add(student)
         db.session.commit()
-   # send_email(email, 'Welcome!', 'Registration successful.')
+    # send_email(email, 'Welcome!', 'Registration successful.')
     return jsonify({'message': 'User registered'}), 201
 
 @auth_bp.route('/login', methods=['POST'])
@@ -27,6 +27,7 @@ def login():
     data = request.get_json()
     user = User.query.filter_by(email=data['email']).first()
     if user and check_password_hash(user.password_hash, data['password']):
-        token = create_access_token(identity={'id': user.id, 'role': user.role})
-        return jsonify({'token': token})
+        # Changed: Use email as identity (string) instead of dict
+        token = create_access_token(identity=user.email)
+        return jsonify({'token': token, 'role': user.role})
     return jsonify({'error': 'Invalid credentials'}), 401

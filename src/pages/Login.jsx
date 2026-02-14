@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";  // Install with: npm install axios
+import axios from "axios";
 import logo from "../assets/logo.png";
 
 const API_BASE_URL = "http://127.0.0.1:5000";  // Update to your deployed backend URL later
@@ -19,31 +19,43 @@ export default function Login() {
     setSuccess("");
     setLoading(true);
 
+    console.log('Starting login request...');
+
     try {
-      // Send login request to backend
       const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         email,
         password
       }, {
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
 
-      // Store JWT token in localStorage
+      console.log('Full login response:', response.data);
+
       localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userRole', response.data.role);  // Store role for route guards
+      console.log('Token and role stored in localStorage');
 
-      setSuccess("Login successful! Redirecting...");
-      setTimeout(() => navigate("/dashboard"), 1000);  // Redirect to dashboard
+      const { role } = response.data;
+      console.log('Extracted role:', role);
+      
+      const redirectPath = role === "staff" ? "/staff" : "/dashboard";
+      console.log('Redirecting to:', redirectPath);
+
+      setSuccess(`Login successful! Redirecting to ${role === "staff" ? "staff dashboard" : "dashboard"}...`);
+      navigate(redirectPath);
     } catch (err) {
-      // Handle errors (e.g., invalid credentials)
-      setError(err.response?.data?.error || "Login failed. Please check your credentials.");
+      console.log('Login error:', err);
+      setError(err.response?.data?.error || err.message || "Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
+      console.log('Login process finished.');
     }
   };
 
-  const currentYear = new Date().getFullYear(); // Get the current year dynamically
+  const currentYear = new Date().getFullYear();
 
   return (
     <div className="login-bg">
@@ -72,7 +84,7 @@ export default function Login() {
         </header>
         <div className="login-card">
           <h2 className="login-title">
-            Student Login
+            Login
           </h2>
 
           {error && <p className="error-message" style={{ color: "red" }}>{error}</p>}

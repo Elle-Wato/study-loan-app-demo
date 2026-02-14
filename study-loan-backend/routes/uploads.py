@@ -1,22 +1,39 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from werkzeug.utils import secure_filename
-from models import db, Document, Student
-from utils.s3 import upload_to_s3
+from models import db, User, Student, Document
+import cloudinary.uploader
 
 uploads_bp = Blueprint('uploads', __name__)
 
 @uploads_bp.route('/upload', methods=['POST'])
 @jwt_required()
 def upload_document():
-    user_id = get_jwt_identity()['id']
-    student = Student.query.filter_by(user_id=user_id).first()
-    if not student:
-        return jsonify({'error': 'Student not found'}), 404
-    file = request.files['file']
-    filename = secure_filename(file.filename)
-    url = upload_to_s3(file, filename)
-    doc = Document(student_id=student.id, file_url=url)
-    db.session.add(doc)
-    db.session.commit()
-    return jsonify({'url': url})
+    try:
+        user_email = get_jwt_identity()
+        user = User.query.filter_by(email=user_email).first()
+        if not user or user.role != 'student':
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        student = Student.query.filter_by(user_id=user.id).first()
+        if not student:
+            return jsonify({'error': 'Student profile not found'}), 404
+        
+        file = request.files.get('file')
+        if not file:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        # Upload to Cloudinary
+        upload_result = cloudinary.uploader.upload(file)
+        file_url = upload_result['secure_url']
+        
+        # Save to DB
+        document = Document(student_id=student.id, file_url=file_url)
+        db.session.add(document)
+        db.session.commit()
+        
+        return jsonify({'message': 'File uploaded successfully', 'file_url': file_url}), 201
+    
+    except Exception as e:
+        print(f"Upload error: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': 'Upload failed'}), 500

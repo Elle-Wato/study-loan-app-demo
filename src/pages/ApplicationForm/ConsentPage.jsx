@@ -1,6 +1,9 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import SignatureCanvas from "react-signature-canvas";
+import axios from "axios";  // Added for API call
+import SignaturePad from "signature_pad";
+
+const API_BASE_URL = "http://127.0.0.1:5000";  // Your backend URL
 
 const ConsentPage = ({ onBack }) => {
   const navigate = useNavigate();
@@ -13,42 +16,96 @@ const ConsentPage = ({ onBack }) => {
     guarantorDate: "",
   });
 
-  const studentSigRef = useRef(null);
-  const guardianSigRef = useRef(null);
-  const guarantorSigRef = useRef(null);
+  // Refs for canvas elements
+  const studentCanvasRef = useRef(null);
+  const guardianCanvasRef = useRef(null);
+  const guarantorCanvasRef = useRef(null);
+
+  // SignaturePad instances
+  const studentSigPad = useRef(null);
+  const guardianSigPad = useRef(null);
+  const guarantorSigPad = useRef(null);
+
+  // Initialize SignaturePad on mount
+  useEffect(() => {
+    if (studentCanvasRef.current) {
+      studentSigPad.current = new SignaturePad(studentCanvasRef.current);
+    }
+    if (guardianCanvasRef.current) {
+      guardianSigPad.current = new SignaturePad(guardianCanvasRef.current);
+    }
+    if (guarantorCanvasRef.current) {
+      guarantorSigPad.current = new SignaturePad(guarantorCanvasRef.current);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      studentSigPad.current?.off();
+      guardianSigPad.current?.off();
+      guarantorSigPad.current?.off();
+    };
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {  // Made async
     e.preventDefault();
-    // Get signature data as base64 images
-    const studentSignature = studentSigRef.current?.getTrimmedCanvas().toDataURL("image/png");
-    const guardianSignature = guardianSigRef.current?.getTrimmedCanvas().toDataURL("image/png");
-    const guarantorSignature = guarantorSigRef.current?.getTrimmedCanvas().toDataURL("image/png");
+    try {
+      // Get signature data as base64 images
+      const studentSignature = studentSigPad.current?.isEmpty() ? null : studentSigPad.current.toDataURL("image/png");
+      const guardianSignature = guardianSigPad.current?.isEmpty() ? null : guardianSigPad.current.toDataURL("image/png");
+      const guarantorSignature = guarantorSigPad.current?.isEmpty() ? null : guarantorSigPad.current.toDataURL("image/png");
 
-    // Combine form data
-    const fullData = {
-      ...formData,
-      studentSignature,
-      guardianSignature,
-      guarantorSignature,
-    };
+      // Check if signatures are provided
+      if (!studentSignature || !guardianSignature || !guarantorSignature) {
+        alert("Please provide all signatures before submitting.");
+        return;
+      }
 
-    console.log("Consent Form Data:", fullData);
-    // TODO: Send to backend or handle submission (e.g., API call)
-    // Navigate to success page
-    navigate("/success");
+      // Combine form data
+      const fullData = {
+        ...formData,
+        studentSignature,
+        guardianSignature,
+        guarantorSignature,
+      };
+
+      console.log("Consent Form Data:", fullData);
+
+      // Send to backend
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You must be logged in to submit.");
+        return;
+      }
+
+      const response = await axios.post(`${API_BASE_URL}/submissions/submit`, fullData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log("Submission response:", response.data);
+      alert("Application submitted successfully!");
+      
+      // Navigate to success page
+      navigate("/success");
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Failed to submit. Please try again.");
+    }
   };
 
   const handleBack = () => {
     if (onBack) onBack();
   };
 
-  const clearSignature = (ref) => {
-    ref.current?.clear();
+  const clearSignature = (sigPad) => {
+    sigPad.current?.clear();
   };
 
   return (
@@ -77,11 +134,13 @@ const ConsentPage = ({ onBack }) => {
             <div className="form-group">
               <label>Signature:</label>
               <div className="signature-container">
-                <SignatureCanvas
-                  ref={studentSigRef}
-                  canvasProps={{ className: "signature-canvas" }}
+                <canvas
+                  ref={studentCanvasRef}
+                  className="signature-canvas"
+                  width={400}
+                  height={200}
                 />
-                <button type="button" onClick={() => clearSignature(studentSigRef)} className="clear-btn">
+                <button type="button" onClick={() => clearSignature(studentSigPad)} className="clear-btn">
                   Clear
                 </button>
               </div>
@@ -115,11 +174,13 @@ const ConsentPage = ({ onBack }) => {
             <div className="form-group">
               <label>Signature:</label>
               <div className="signature-container">
-                <SignatureCanvas
-                  ref={guardianSigRef}
-                  canvasProps={{ className: "signature-canvas" }}
+                <canvas
+                  ref={guardianCanvasRef}
+                  className="signature-canvas"
+                  width={400}
+                  height={200}
                 />
-                <button type="button" onClick={() => clearSignature(guardianSigRef)} className="clear-btn">
+                <button type="button" onClick={() => clearSignature(guardianSigPad)} className="clear-btn">
                   Clear
                 </button>
               </div>
@@ -130,6 +191,46 @@ const ConsentPage = ({ onBack }) => {
                 type="date"
                 name="guardianDate"
                 value={formData.guardianDate}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Guarantor Section */}
+          <div className="consent-section">
+            <h2>Guarantor Consent</h2>
+            <div className="form-group">
+              <label>Guarantor Name:</label>
+              <input
+                type="text"
+                name="guarantorName"
+                value={formData.guarantorName}
+                onChange={handleInputChange}
+                required
+                placeholder="Enter full name"
+              />
+            </div>
+            <div className="form-group">
+              <label>Signature:</label>
+              <div className="signature-container">
+                <canvas
+                  ref={guarantorCanvasRef}
+                  className="signature-canvas"
+                  width={400}
+                  height={200}
+                />
+                <button type="button" onClick={() => clearSignature(guarantorSigPad)} className="clear-btn">
+                  Clear
+                </button>
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Date:</label>
+              <input
+                type="date"
+                name="guarantorDate"
+                value={formData.guarantorDate}
                 onChange={handleInputChange}
                 required
               />

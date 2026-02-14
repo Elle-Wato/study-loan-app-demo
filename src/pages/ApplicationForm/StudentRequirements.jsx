@@ -1,6 +1,9 @@
 import { useState } from "react";
+import axios from "axios";  // Added for API call
 import Section from "../../components/Section";
 import ProgramSelect from "../../components/ProgramSelect";
+
+const API_BASE_URL = "http://127.0.0.1:5000";  // Your backend URL
 
 export default function StudentRequirements({ onNext }) {
   const [program, setProgram] = useState(""); // Track selected program
@@ -39,13 +42,42 @@ export default function StudentRequirements({ onNext }) {
     });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {  // Made async for API call
     if (!program) {
       alert("Please select a program before proceeding.");
       return;
     }
-    // Add validation for required personal details if needed
-    onNext(); // Move to next section
+    // Add more validation if needed (e.g., required fields)
+
+    // Prepare data to send
+    const formData = {
+      program,
+      personalDetails,
+      educationalQualifications,
+      // Add document uploads if handled (e.g., file URLs after upload)
+    };
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You must be logged in to save data.");
+        return;
+      }
+
+      // Save to backend
+      const response = await axios.patch(`${API_BASE_URL}/admin/students/update-details`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log("Data saved successfully:", response.data);
+      onNext();  // Proceed to next step
+    } catch (error) {
+      console.error("Error saving data:", error);
+      alert("Failed to save data. Please try again.");
+    }
   };
 
   return (

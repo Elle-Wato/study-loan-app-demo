@@ -3,8 +3,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import ApplicationForm from "./pages/ApplicationForm"; // 👈 loads index.jsx
+import ApplicationForm from "./pages/ApplicationForm";
 import Success from "./pages/Success";
+
+import StaffRoute from "./routes/StaffRoute";
+import StaffDashboard from "./pages/staff/StaffDashboard";
 
 function App() {
   return (
@@ -14,13 +17,22 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Main */}
+        {/* Student routes */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/apply" element={<ApplicationForm />} />
         <Route path="/success" element={<Success />} />
-       
 
-        {/* Optional: 404 fallback */}
+        {/* Staff-only route */}
+        <Route
+          path="/staff"
+          element={
+            <StaffRoute>
+              <StaffDashboard />
+            </StaffRoute>
+          }
+        />
+
+        {/* 404 */}
         <Route path="*" element={<h2>Page Not Found</h2>} />
       </Routes>
     </BrowserRouter>
