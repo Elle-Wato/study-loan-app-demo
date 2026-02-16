@@ -1,54 +1,125 @@
+import { useState } from "react";
+import axios from "axios";
 import Section from "../../components/Section";
 
+const API_BASE_URL = "http://127.0.0.1:5000";
+
 export default function ParentGuardianSection({ onNext, onBack }) {
-  const handleNext = () => {
-    // You can add validation here if needed (e.g., check required fields)
-    onNext(); // Move to next section
+  const [parentGuardian, setParentGuardian] = useState({
+    parentName: "",
+    relationship: "",
+    idNumber: "",
+    kraPin: "",
+    telephone: "",
+    numberOfChildren: "",
+    residentialAddress: "",
+    emailAddress: "",
+    placeOfWork: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setParentGuardian({ ...parentGuardian, [name]: value });
+  };
+
+  const handleNext = async () => {
+    // Optional simple validation example
+    if (!parentGuardian.parentName || !parentGuardian.telephone) {
+      alert("Please fill in the required fields.");
+      return;
+    }
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to save data.");
+      return;
+    }
+    try {
+      await axios.patch(
+        `${API_BASE_URL}/admin/students/update-details`,
+        { parentGuardian },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+      onNext();
+    } catch {
+      alert("Failed to save data. Please try again.");
+    }
   };
 
   const handleBack = () => {
-    onBack(); // Go back to previous section
+    onBack();
   };
 
   return (
     <Section title="B. Parent / Guardian Details" className="parent-section">
       <div className="parent-grid">
         <input
+          name="parentName"
           placeholder="👨‍👩‍👧 Full Name of Parent / Guardian"
+          value={parentGuardian.parentName}
+          onChange={handleChange}
           required
           className="parent-input"
         />
         <input
+          name="relationship"
           placeholder="👪 Relationship"
+          value={parentGuardian.relationship}
+          onChange={handleChange}
           className="parent-input"
         />
         <input
+          name="idNumber"
           placeholder="🆔 ID Number"
+          value={parentGuardian.idNumber}
+          onChange={handleChange}
           className="parent-input"
         />
         <input
+          name="kraPin"
           placeholder="📋 KRA PIN"
+          value={parentGuardian.kraPin}
+          onChange={handleChange}
           className="parent-input"
         />
         <input
+          name="telephone"
           placeholder="📞 Telephone Number"
+          value={parentGuardian.telephone}
+          onChange={handleChange}
           className="parent-input"
         />
         <input
+          name="numberOfChildren"
           placeholder="👶 Number of Children"
+          value={parentGuardian.numberOfChildren}
+          onChange={handleChange}
           className="parent-input"
         />
         <input
+          name="residentialAddress"
           placeholder="🏠 Residential Address"
+          value={parentGuardian.residentialAddress}
+          onChange={handleChange}
           className="parent-input"
         />
         <input
           type="email"
+          name="emailAddress"
           placeholder="📧 Email Address"
+          value={parentGuardian.emailAddress}
+          onChange={handleChange}
           className="parent-input"
         />
         <input
+          name="placeOfWork"
           placeholder="🏢 Place of Work"
+          value={parentGuardian.placeOfWork}
+          onChange={handleChange}
           className="parent-input"
         />
       </div>
@@ -56,30 +127,24 @@ export default function ParentGuardianSection({ onNext, onBack }) {
       <h4 className="parent-subtitle">📎 Required Attachments</h4>
       <div className="parent-grid">
         <div className="parent-field">
-          <label className="parent-label">🆔 Copy of ID</label>
-          <input type="file" className="parent-file" />
+          <label className="parent-label" htmlFor="idCopy">🆔 Copy of ID</label>
+          <input type="file" id="idCopy" className="parent-file" />
         </div>
         <div className="parent-field">
-          <label className="parent-label">📋 Copy of KRA PIN</label>
-          <input type="file" className="parent-file" />
+          <label className="parent-label" htmlFor="kraPinCopy">📋 Copy of KRA PIN</label>
+          <input type="file" id="kraPinCopy" className="parent-file" />
         </div>
         <div className="parent-field">
-          <label className="parent-label">📸 Passport Size Photo</label>
-          <input type="file" className="parent-file" />
+          <label className="parent-label" htmlFor="passportPhoto">📸 Passport Size Photo</label>
+          <input type="file" id="passportPhoto" className="parent-file" />
         </div>
       </div>
 
       <div className="parent-buttons">
-        <button
-          onClick={handleBack}
-          className="parent-button parent-button-back"
-        >
+        <button onClick={handleBack} className="parent-button parent-button-back">
           ⬅️ Back
         </button>
-        <button
-          onClick={handleNext}
-          className="parent-button parent-button-next"
-        >
+        <button onClick={handleNext} className="parent-button parent-button-next">
           ➡️ Next
         </button>
       </div>

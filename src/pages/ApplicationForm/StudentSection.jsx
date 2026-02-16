@@ -18,6 +18,7 @@ export default function ApplicationForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log({ program, formData });
+    // TODO: Add logic to save form data to backend or database
     navigate("/success");
   };
 
@@ -32,6 +33,7 @@ export default function ApplicationForm() {
 
       <input
         placeholder="Full Name"
+        value={formData.fullName}
         onChange={(e) =>
           setFormData({ ...formData, fullName: e.target.value })
         }
@@ -40,21 +42,48 @@ export default function ApplicationForm() {
 
       <input
         placeholder="ID Number"
+        value={formData.idNumber}
+        onChange={(e) =>
+          setFormData({ ...formData, idNumber: e.target.value })
+        }
         required
       />
 
       <input
         placeholder="Phone Number"
+        value={formData.phone}
+        onChange={(e) =>
+          setFormData({ ...formData, phone: e.target.value })
+        }
+        required
+      />
+
+      <input
+        placeholder="Email Address"
+        type="email"
+        value={formData.email}
+        onChange={(e) =>
+          setFormData({ ...formData, email: e.target.value })
+        }
         required
       />
 
       <input
         placeholder="University / College"
+        value={formData.university}
+        onChange={(e) =>
+          setFormData({ ...formData, university: e.target.value })
+        }
         required
       />
 
       <input
         placeholder="Amount Applied (Ksh)"
+        type="number"
+        value={formData.amount}
+        onChange={(e) =>
+          setFormData({ ...formData, amount: e.target.value })
+        }
         required
       />
 
