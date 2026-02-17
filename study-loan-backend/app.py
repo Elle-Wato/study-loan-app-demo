@@ -9,11 +9,13 @@ from routes.admin import admin_bp
 from routes.submissions import submissions_bp
 from routes.uploads import uploads_bp
 from routes.staff import staff_bp
+from datetime import timedelta
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 jwt = JWTManager(app)
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=30) 
 
 CORS(app, origins=['http://127.0.0.1:5173', 'http://localhost:3000', app.config.get('FRONTEND_URL', 'http://localhost:3000')])
 db.init_app(app)

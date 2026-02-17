@@ -1,8 +1,11 @@
 import { useState } from "react";
+import axios from "axios";
 import Section from "../../components/Section";
 
+const API_BASE_URL = "http://127.0.0.1:5000";
+
 export default function GuarantorSection({ onNext, onBack, program }) {
-  const isPostgraduate = program === "Postgraduate";
+  const isPostgraduate = program === "postgraduate" || program === "Postgraduate";
   const numGuarantors = isPostgraduate ? 1 : 2;
 
   const [guarantors, setGuarantors] = useState(
@@ -35,8 +38,13 @@ export default function GuarantorSection({ onNext, onBack, program }) {
       consentFile: null,
       idFile: null,
       photoFile: null,
+      consentFileUrl: "",
+      idFileUrl: "",
+      photoFileUrl: "",
     }))
   );
+
+  const [uploading, setUploading] = useState(false);
 
   const handleChange = (index, field, value) => {
     const updatedGuarantors = [...guarantors];
@@ -50,9 +58,107 @@ export default function GuarantorSection({ onNext, onBack, program }) {
     setGuarantors(updatedGuarantors);
   };
 
-  const handleNext = () => {
-    // Add validation if needed
-    onNext();
+  const uploadFile = async (file, token) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await axios.post(
+      `${API_BASE_URL}/uploads/upload`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+        timeout: 30000,
+      }
+    );
+
+    return res.data.file_url;
+  };
+
+  const handleNext = async () => {
+    // Validation
+    for (let i = 0; i < guarantors.length; i++) {
+      const g = guarantors[i];
+      if (!g.fullName || !g.idNumber || !g.phoneNumber || !g.emailAddress) {
+        alert(`Please fill all required fields for Guarantor ${i + 1}`);
+        return;
+      }
+      if (!g.consentFile || !g.idFile || !g.photoFile) {
+        alert(`Please select all required documents for Guarantor ${i + 1}`);
+        return;
+      }
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to save data.");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const updatedGuarantors = [...guarantors];
+
+      // Upload all files for all guarantors
+      for (let i = 0; i < updatedGuarantors.length; i++) {
+        const g = updatedGuarantors[i];
+
+        console.log(`Uploading files for Guarantor ${i + 1}...`);
+
+        // Upload consent file
+        if (g.consentFile) {
+          g.consentFileUrl = await uploadFile(g.consentFile, token);
+          console.log(`✅ Consent file uploaded for Guarantor ${i + 1}`);
+        }
+
+        // Upload ID file
+        if (g.idFile) {
+          g.idFileUrl = await uploadFile(g.idFile, token);
+          console.log(`✅ ID file uploaded for Guarantor ${i + 1}`);
+        }
+
+        // Upload photo file
+        if (g.photoFile) {
+          g.photoFileUrl = await uploadFile(g.photoFile, token);
+          console.log(`✅ Photo file uploaded for Guarantor ${i + 1}`);
+        }
+
+        // Remove file objects (only keep URLs)
+        delete g.consentFile;
+        delete g.idFile;
+        delete g.photoFile;
+      }
+
+      // Save to database
+      await axios.patch(
+        `${API_BASE_URL}/admin/students/update-details`,
+        { guarantors: updatedGuarantors },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("✅ GUARANTORS SAVED");
+      onNext();
+    } catch (error) {
+      console.error("❌ ERROR:", error);
+      
+      if (error.response?.status === 401) {
+        alert("Your session has expired. Please log in again.");
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      } else {
+        alert("Failed to save data. Please try again.");
+      }
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleBack = () => {
@@ -205,7 +311,7 @@ export default function GuarantorSection({ onNext, onBack, program }) {
             <h5>2.0 LOAN DETAILS</h5>
             <div className="guar-grid">
               <div className="guar-field">
-                <label className="guar-label">Applicant’s Name:</label>
+                <label className="guar-label">Applicant's Name:</label>
                 <input
                   type="text"
                   value={guarantor.applicantName}
@@ -304,6 +410,7 @@ export default function GuarantorSection({ onNext, onBack, program }) {
                 <label className="guar-label">Referee (1) Name:</label>
                 <input
                   type="text"
+                  
                   value={guarantor.referee1Name}
                   onChange={(e) => handleChange(index, "referee1Name", e.target.value)}
                   className="guar-input"
@@ -337,7 +444,6 @@ export default function GuarantorSection({ onNext, onBack, program }) {
                   value={guarantor.referee2Name}
                   onChange={(e) => handleChange(index, "referee2Name", e.target.value)}
                   className="guar-input"
-                  required
                 />
               </div>
               <div className="guar-field">
@@ -347,7 +453,6 @@ export default function GuarantorSection({ onNext, onBack, program }) {
                   value={guarantor.referee2Phone}
                   onChange={(e) => handleChange(index, "referee2Phone", e.target.value)}
                   className="guar-input"
-                  required
                 />
               </div>
               <div className="guar-field">
@@ -357,39 +462,56 @@ export default function GuarantorSection({ onNext, onBack, program }) {
                   value={guarantor.referee2Email}
                   onChange={(e) => handleChange(index, "referee2Email", e.target.value)}
                   className="guar-input"
-                  required
                 />
               </div>
             </div>
           </div>
 
-          {/* Attachments */}
+          {/* Document Uploads */}
           <div className="guar-section">
-            <h5>Attachments</h5>
+            <h5>Document Uploads</h5>
             <div className="guar-grid">
-              <div className="guar-item">
-                <label className="guar-label">📄 Upload Signed Consent Form</label>
+              <div className="guar-field">
+                <label className="guar-label">📄 Consent Letter (PDF/Image):</label>
                 <input
                   type="file"
                   onChange={(e) => handleFileChange(index, "consentFile", e.target.files[0])}
+                  accept=".pdf,.jpg,.png"
                   className="guar-file"
                 />
+                {guarantor.consentFile && (
+                  <p style={{ color: "green", fontSize: "12px", marginTop: "5px" }}>
+                    ✅ Selected: {guarantor.consentFile.name}
+                  </p>
+                )}
               </div>
-              <div className="guar-item">
-                <label className="guar-label">🆔 Upload Copy of Identity Card</label>
+              <div className="guar-field">
+                <label className="guar-label">🆔 ID Document (PDF/Image):</label>
                 <input
                   type="file"
                   onChange={(e) => handleFileChange(index, "idFile", e.target.files[0])}
+                  accept=".pdf,.jpg,.png"
                   className="guar-file"
                 />
+                {guarantor.idFile && (
+                  <p style={{ color: "green", fontSize: "12px", marginTop: "5px" }}>
+                    ✅ Selected: {guarantor.idFile.name}
+                  </p>
+                )}
               </div>
-              <div className="guar-item">
-                <label className="guar-label">📸 Upload Passport Size Photo</label>
+              <div className="guar-field">
+                <label className="guar-label">📸 Passport Photo (Image):</label>
                 <input
                   type="file"
                   onChange={(e) => handleFileChange(index, "photoFile", e.target.files[0])}
+                  accept=".jpg,.png"
                   className="guar-file"
                 />
+                {guarantor.photoFile && (
+                  <p style={{ color: "green", fontSize: "12px", marginTop: "5px" }}>
+                    ✅ Selected: {guarantor.photoFile.name}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -397,11 +519,19 @@ export default function GuarantorSection({ onNext, onBack, program }) {
       ))}
 
       <div className="guar-buttons">
-        <button onClick={handleBack} className="guar-button guar-button-back">
+        <button
+          onClick={handleBack}
+          className="guar-button guar-button-back"
+          disabled={uploading}
+        >
           ⬅️ Back
         </button>
-        <button onClick={handleNext} className="guar-button guar-button-next">
-          ➡️ Next
+        <button
+          onClick={handleNext}
+          className="guar-button guar-button-next"
+          disabled={uploading}
+        >
+          {uploading ? "Uploading & Saving..." : "➡️ Next"}
         </button>
       </div>
     </Section>

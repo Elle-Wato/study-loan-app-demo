@@ -17,35 +17,98 @@ export default function ParentGuardianSection({ onNext, onBack }) {
     placeOfWork: "",
   });
 
+  const [documents, setDocuments] = useState({
+    idCopy: null,
+    kraPinCopy: null,
+    passportPhoto: null,
+  });
+
+  const [uploadedUrls, setUploadedUrls] = useState({
+    idCopy: "",
+    kraPinCopy: "",
+    passportPhoto: "",
+  });
+
+  const [uploading, setUploading] = useState(false);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setParentGuardian({ ...parentGuardian, [name]: value });
   };
 
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    if (files && files[0]) {
+      setDocuments({ ...documents, [name]: files[0] });
+      uploadFile(name, files[0]);
+    }
+  };
+
+  const uploadFile = async (fieldName, file) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to upload files.");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await axios.post(
+        `${API_BASE_URL}/uploads/upload`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      const fileUrl = res.data.file_url;
+      setUploadedUrls((prev) => ({ ...prev, [fieldName]: fileUrl }));
+      console.log(`✅ ${fieldName} uploaded:`, fileUrl);
+    } catch (error) {
+      console.error(`❌ Error uploading ${fieldName}:`, error);
+      alert(`Failed to upload ${fieldName}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleNext = async () => {
-    // Optional simple validation example
     if (!parentGuardian.parentName || !parentGuardian.telephone) {
       alert("Please fill in the required fields.");
       return;
     }
+
     const token = localStorage.getItem("token");
     if (!token) {
       alert("You must be logged in to save data.");
       return;
     }
+
     try {
       await axios.patch(
         `${API_BASE_URL}/admin/students/update-details`,
-        { parentGuardian },
+        {
+          parentGuardian,
+          parentGuardianDocuments: uploadedUrls, // Save document URLs
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
+      console.log("✅ PARENT/GUARDIAN DATA SAVED");
       onNext();
-    } catch {
+    } catch (error) {
+      console.error("❌ ERROR:", error);
       alert("Failed to save data. Please try again.");
     }
   };
@@ -127,25 +190,70 @@ export default function ParentGuardianSection({ onNext, onBack }) {
       <h4 className="parent-subtitle">📎 Required Attachments</h4>
       <div className="parent-grid">
         <div className="parent-field">
-          <label className="parent-label" htmlFor="idCopy">🆔 Copy of ID</label>
-          <input type="file" id="idCopy" className="parent-file" />
+          <label className="parent-label" htmlFor="idCopy">
+            🆔 Copy of ID
+          </label>
+          <input
+            type="file"
+            id="idCopy"
+            name="idCopy"
+            className="parent-file"
+            onChange={handleFileChange}
+            accept=".pdf,.jpg,.png"
+          />
+          {uploadedUrls.idCopy && (
+            <p style={{ color: "green", fontSize: "12px" }}>✅ Uploaded</p>
+          )}
         </div>
+
         <div className="parent-field">
-          <label className="parent-label" htmlFor="kraPinCopy">📋 Copy of KRA PIN</label>
-          <input type="file" id="kraPinCopy" className="parent-file" />
+          <label className="parent-label" htmlFor="kraPinCopy">
+            📋 Copy of KRA PIN
+          </label>
+          <input
+            type="file"
+            id="kraPinCopy"
+            name="kraPinCopy"
+            className="parent-file"
+            onChange={handleFileChange}
+            accept=".pdf,.jpg,.png"
+          />
+          {uploadedUrls.kraPinCopy && (
+            <p style={{ color: "green", fontSize: "12px" }}>✅ Uploaded</p>
+          )}
         </div>
+
         <div className="parent-field">
-          <label className="parent-label" htmlFor="passportPhoto">📸 Passport Size Photo</label>
-          <input type="file" id="passportPhoto" className="parent-file" />
+          <label className="parent-label" htmlFor="passportPhoto">
+            📸 Passport Size Photo
+          </label>
+          <input
+            type="file"
+            id="passportPhoto"
+            name="passportPhoto"
+            className="parent-file"
+            onChange={handleFileChange}
+            accept=".jpg,.png"
+          />
+          {uploadedUrls.passportPhoto && (
+            <p style={{ color: "green", fontSize: "12px" }}>✅ Uploaded</p>
+          )}
         </div>
       </div>
 
       <div className="parent-buttons">
-        <button onClick={handleBack} className="parent-button parent-button-back">
+        <button
+          onClick={handleBack}
+          className="parent-button parent-button-back"
+        >
           ⬅️ Back
         </button>
-        <button onClick={handleNext} className="parent-button parent-button-next">
-          ➡️ Next
+        <button
+          onClick={handleNext}
+          className="parent-button parent-button-next"
+          disabled={uploading}
+        >
+          {uploading ? "Uploading..." : "➡️ Next"}
         </button>
       </div>
     </Section>

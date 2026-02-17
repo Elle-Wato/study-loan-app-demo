@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";  // Added for API call
+import axios from "axios";
 import SignaturePad from "signature_pad";
 
-const API_BASE_URL = "http://127.0.0.1:5000";  // Your backend URL
+const API_BASE_URL = "http://127.0.0.1:5000";
 
 const ConsentPage = ({ onBack }) => {
   const navigate = useNavigate();
@@ -12,19 +12,17 @@ const ConsentPage = ({ onBack }) => {
     studentDate: "",
     guardianName: "",
     guardianDate: "",
-    guarantorName: "",
-    guarantorDate: "",
   });
+
+  const [submitting, setSubmitting] = useState(false);
 
   // Refs for canvas elements
   const studentCanvasRef = useRef(null);
   const guardianCanvasRef = useRef(null);
-  const guarantorCanvasRef = useRef(null);
 
   // SignaturePad instances
   const studentSigPad = useRef(null);
   const guardianSigPad = useRef(null);
-  const guarantorSigPad = useRef(null);
 
   // Initialize SignaturePad on mount
   useEffect(() => {
@@ -34,15 +32,11 @@ const ConsentPage = ({ onBack }) => {
     if (guardianCanvasRef.current) {
       guardianSigPad.current = new SignaturePad(guardianCanvasRef.current);
     }
-    if (guarantorCanvasRef.current) {
-      guarantorSigPad.current = new SignaturePad(guarantorCanvasRef.current);
-    }
 
     // Cleanup on unmount
     return () => {
       studentSigPad.current?.off();
       guardianSigPad.current?.off();
-      guarantorSigPad.current?.off();
     };
   }, []);
 
@@ -51,52 +45,82 @@ const ConsentPage = ({ onBack }) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {  // Made async
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
     try {
       // Get signature data as base64 images
-      const studentSignature = studentSigPad.current?.isEmpty() ? null : studentSigPad.current.toDataURL("image/png");
-      const guardianSignature = guardianSigPad.current?.isEmpty() ? null : guardianSigPad.current.toDataURL("image/png");
-      const guarantorSignature = guarantorSigPad.current?.isEmpty() ? null : guarantorSigPad.current.toDataURL("image/png");
+      const studentSignature = studentSigPad.current?.isEmpty() 
+        ? null 
+        : studentSigPad.current.toDataURL("image/png");
+      const guardianSignature = guardianSigPad.current?.isEmpty() 
+        ? null 
+        : guardianSigPad.current.toDataURL("image/png");
 
       // Check if signatures are provided
-      if (!studentSignature || !guardianSignature || !guarantorSignature) {
-        alert("Please provide all signatures before submitting.");
+      if (!studentSignature || !guardianSignature) {
+        alert("Please provide both student and guardian signatures before submitting.");
         return;
       }
 
-      // Combine form data
-      const fullData = {
-        ...formData,
-        studentSignature,
-        guardianSignature,
-        guarantorSignature,
-      };
-
-      console.log("Consent Form Data:", fullData);
-
-      // Send to backend
       const token = localStorage.getItem("token");
       if (!token) {
         alert("You must be logged in to submit.");
         return;
       }
 
-      const response = await axios.post(`${API_BASE_URL}/submissions/submit`, fullData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      setSubmitting(true);
 
-      console.log("Submission response:", response.data);
+      // Step 1: Save consent form data to student.details
+      const consentData = {
+        consentForm: {
+          studentName: formData.studentName,
+          studentDate: formData.studentDate,
+          studentSignature,
+          guardianName: formData.guardianName,
+          guardianDate: formData.guardianDate,
+          guardianSignature,
+          submittedAt: new Date().toISOString(),
+        }
+      };
+
+      console.log("Saving consent form...");
+      await axios.patch(
+        `${API_BASE_URL}/admin/students/update-details`,
+        consentData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("✅ Consent form saved");
+
+      // Step 2: Submit the application
+      console.log("Submitting application...");
+      const response = await axios.post(
+        `${API_BASE_URL}/submissions/submit`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("✅ Application submitted:", response.data);
       alert("Application submitted successfully!");
-      
+
       // Navigate to success page
       navigate("/success");
     } catch (error) {
-      console.error("Submission error:", error);
-      alert("Failed to submit. Please try again.");
+      console.error("❌ Submission error:", error.response?.data || error);
+      alert(error.response?.data?.error || "Failed to submit. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -140,7 +164,11 @@ const ConsentPage = ({ onBack }) => {
                   width={400}
                   height={200}
                 />
-                <button type="button" onClick={() => clearSignature(studentSigPad)} className="clear-btn">
+                <button 
+                  type="button" 
+                  onClick={() => clearSignature(studentSigPad)} 
+                  className="clear-btn"
+                >
                   Clear
                 </button>
               </div>
@@ -180,7 +208,11 @@ const ConsentPage = ({ onBack }) => {
                   width={400}
                   height={200}
                 />
-                <button type="button" onClick={() => clearSignature(guardianSigPad)} className="clear-btn">
+                <button 
+                  type="button" 
+                  onClick={() => clearSignature(guardianSigPad)} 
+                  className="clear-btn"
+                >
                   Clear
                 </button>
               </div>
@@ -197,52 +229,21 @@ const ConsentPage = ({ onBack }) => {
             </div>
           </div>
 
-          {/* Guarantor Section */}
-          <div className="consent-section">
-            <h2>Guarantor Consent</h2>
-            <div className="form-group">
-              <label>Guarantor Name:</label>
-              <input
-                type="text"
-                name="guarantorName"
-                value={formData.guarantorName}
-                onChange={handleInputChange}
-                required
-                placeholder="Enter full name"
-              />
-            </div>
-            <div className="form-group">
-              <label>Signature:</label>
-              <div className="signature-container">
-                <canvas
-                  ref={guarantorCanvasRef}
-                  className="signature-canvas"
-                  width={400}
-                  height={200}
-                />
-                <button type="button" onClick={() => clearSignature(guarantorSigPad)} className="clear-btn">
-                  Clear
-                </button>
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Date:</label>
-              <input
-                type="date"
-                name="guarantorDate"
-                value={formData.guarantorDate}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </div>
-
           <div className="consent-buttons">
-            <button type="button" onClick={handleBack} className="consent-button consent-button-back">
+            <button 
+              type="button" 
+              onClick={handleBack} 
+              className="consent-button consent-button-back"
+              disabled={submitting}
+            >
               ⬅️ Back
             </button>
-            <button type="submit" className="consent-button consent-button-submit">
-              ✅ Submit Consent
+            <button 
+              type="submit" 
+              className="consent-button consent-button-submit"
+              disabled={submitting}
+            >
+              {submitting ? "Submitting..." : "✅ Submit Application"}
             </button>
           </div>
         </form>

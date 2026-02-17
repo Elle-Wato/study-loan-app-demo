@@ -21,108 +21,20 @@ def admin_or_staff_required():
     return None
 
 def serialize_student(student, submission=None):
-    import json
-    details = student.details or {}
-    if isinstance(details, str):
-        try:
-            details = json.loads(details)
-        except:
-            details = {}
-
-    # other detail extraction...
-
-    program = details.get("program", "N/A")
-
-    return {
-        # existing fields ...
-        'program': program,
-        # other fields ...
-    }
-
-def serialize_student(student, submission=None):
-    """Flatten student + user + submission + documents for frontend"""
-    details = student.details or {}
-
-    # Ensure details is a dict (could be JSON stored as string)
-    if isinstance(details, str):
-        try:
-            details = json.loads(details)
-        except Exception:
-            details = {}
-
-    personal = details.get('personalDetails', {})
-    parent = details.get('parentGuardian', {})
-    employment = details.get('employmentDetails', {})
-    financial = details.get('financialDetails', {})
-    loan = details.get('loanDetails', {})
-    referees = details.get('referees', {})
-    budget = details.get('budgetDetails', {})
-    guarantors = details.get('guarantors', [])
-    consent = details.get('consentForm', {})
-
+    """Return student data with raw details for frontend"""
+    
     return {
         'id': student.id,
-        'name': student.name or personal.get('fullName') or consent.get('studentName') or 'N/A',
-        'email': personal.get('emailAddress') or (student.user.email if student.user else 'N/A'),
-
-        # Academic info
-        'course': personal.get('course') or 'N/A',
-        'institution': personal.get('institution') or 'N/A',
-
-        # Parent / guardian info
-        'parent_name': parent.get('parentName') or 'N/A',
-        'parent_phone': parent.get('telephone') or 'N/A',
-
-        # Employment info
-        'employment_name': employment.get('name') or 'N/A',
-        'employer_name': employment.get('employerName') or 'N/A',
-        'employment_position': employment.get('employmentPosition') or 'N/A',
-
-        # Financial info
-        'financial_bankName': financial.get('bankName') or 'N/A',
-        'financial_accountNumber': financial.get('accountNumber') or 'N/A',
-        'financial_hasLoans': financial.get('hasLoans') or 'N/A',
-        'financial_loanAmount': financial.get('loanAmount') or 'N/A',
-        'financial_outstandingBalance': financial.get('outstandingBalance') or 'N/A',
-        'financial_monthlyRepayment': financial.get('monthlyRepayment') or 'N/A',
-
-        # Loan Details
-        'loan_universityName': loan.get('universityName') or 'N/A',
-        'loan_studyProgram': loan.get('studyProgram') or 'N/A',
-        'loan_levelOfStudy': loan.get('levelOfStudy') or 'N/A',
-        'loan_amountApplied': loan.get('amountApplied') or 'N/A',
-        'loan_repaymentPeriod': loan.get('repaymentPeriod') or 'N/A',
-        'loan_security': loan.get('loanSecurity') or 'N/A',
-
-        # Referees
-        'first_referee': referees.get('firstReferee', {}),
-        'second_referee': referees.get('secondReferee', {}),
-        'third_referee': referees.get('thirdReferee', {}),
-
-        # Budget Planner
-        'budget_netSalary': budget.get('netSalary') or 'N/A',
-        'budget_businessIncome': budget.get('businessIncome') or 'N/A',
-        'budget_otherIncome': budget.get('otherIncome') or 'N/A',
-        'budget_householdExpenses': budget.get('householdExpenses') or 'N/A',
-        'budget_rentalExpenses': budget.get('rentalExpenses') or 'N/A',
-        'budget_transportExpenses': budget.get('transportExpenses') or 'N/A',
-        'budget_otherExpenses': budget.get('otherExpenses') or 'N/A',
-
-        # Guarantors (list of dicts)
-        'guarantors': guarantors,
-
-        # Consent form signatures and dates
-        'consent_studentSignature': consent.get('studentSignature'),
-        'consent_guardianSignature': consent.get('guardianSignature'),
-        'consent_guarantorSignature': consent.get('guarantorSignature'),
-        'consent_studentDate': consent.get('studentDate'),
-        'consent_guardianDate': consent.get('guardianDate'),
-        'consent_guarantorDate': consent.get('guarantorDate'),
-
+        'name': student.name or 'N/A',
+        'email': student.user.email if student.user else 'N/A',
+        
+        # Send raw details as-is
+        'details': student.details or {},
+        
         # Submission info
         'status': submission.status if submission else 'pending',
         'submitted_at': submission.submitted_at.isoformat() if submission else None,
-
+        
         # Uploaded documents
         'documents': [
             {
@@ -259,22 +171,61 @@ def update_student_details():
         user = User.query.filter_by(email=user_email).first()
 
         if not user or user.role != 'student':
+            print("❌ UNAUTHORIZED: User is not a student")
             return jsonify({'error': 'Unauthorized'}), 403
 
         student = Student.query.filter_by(user_id=user.id).first()
         if not student:
+            print("❌ STUDENT NOT FOUND")
             return jsonify({'error': 'Student profile not found'}), 404
 
-        data = request.get_json()
+        incoming_data = request.get_json()
+        
+        # 🔥 DEBUG PRINTS
+        print("\n" + "=" * 60)
+        print("🔵 INCOMING DATA:")
+        print(json.dumps(incoming_data, indent=2))
+        print("\n🟡 EXISTING DETAILS BEFORE MERGE:")
+        print(json.dumps(student.details, indent=2))
+        print("=" * 60 + "\n")
 
-        if student.details is None:
-            student.details = {}
+        # Always ensure details is a dict
+        existing_details = student.details if student.details else {}
 
-        student.details.update(data)
+        if isinstance(existing_details, str):
+            try:
+                existing_details = json.loads(existing_details)
+            except:
+                existing_details = {}
+
+        # 🔥 SIMPLE MERGE - just update the dict
+        existing_details.update(incoming_data)
+
+        # 🔥 CRITICAL: Create NEW dict to force SQLAlchemy to detect change
+        student.details = dict(existing_details)
+        
+        # Mark as modified explicitly
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(student, 'details')
+        
+        # Also update student name if provided
+        if 'personalDetails' in incoming_data and 'fullName' in incoming_data['personalDetails']:
+            student.name = incoming_data['personalDetails']['fullName']
+
+        # 🔥 FORCE COMMIT
         db.session.commit()
+
+        print("✅ SAVED SUCCESSFULLY")
+        print("🟢 DETAILS AFTER MERGE:")
+        print(json.dumps(student.details, indent=2))
+        print("=" * 60 + "\n")
 
         return jsonify({'message': 'Details updated successfully'})
 
-    except Exception:
+    except Exception as e:
         db.session.rollback()
-        return jsonify({'error': 'Internal server error'}), 500
+        print("\n❌ ERROR OCCURRED:")
+        print(str(e))
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500

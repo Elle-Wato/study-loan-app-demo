@@ -1,13 +1,94 @@
+import { useState } from "react";
+import axios from "axios";
 import Section from "../../components/Section";
 
+const API_BASE_URL = "http://127.0.0.1:5000";
+
 export default function RecommendationsSection({ onNext, onBack }) {
-  const handleNext = () => {
-    // You can add validation here if needed (e.g., check required fields)
-    onNext(); // Move to next section
+  const [recommendationFile, setRecommendationFile] = useState(null);
+  const [uploadedUrl, setUploadedUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setRecommendationFile(file);
+      uploadFile(file);
+    }
+  };
+
+  const uploadFile = async (file) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to upload files.");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await axios.post(
+        `${API_BASE_URL}/uploads/upload`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      const fileUrl = res.data.file_url;
+      setUploadedUrl(fileUrl);
+      console.log("✅ Recommendation uploaded:", fileUrl);
+    } catch (error) {
+      console.error("❌ Error uploading recommendation:", error);
+      alert("Failed to upload recommendation");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleNext = async () => {
+    if (!uploadedUrl) {
+      alert("Please upload the recommendation document before proceeding.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to save data.");
+      return;
+    }
+
+    try {
+      await axios.patch(
+        `${API_BASE_URL}/admin/students/update-details`,
+        {
+          recommendations: {
+            chiefAndImamRecommendation: uploadedUrl,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("✅ RECOMMENDATION SAVED");
+      onNext();
+    } catch (error) {
+      console.error("❌ ERROR SAVING RECOMMENDATION:", error);
+      alert("Failed to save data. Please try again.");
+    }
   };
 
   const handleBack = () => {
-    onBack(); // Go back to previous section
+    onBack();
   };
 
   return (
@@ -18,7 +99,25 @@ export default function RecommendationsSection({ onNext, onBack }) {
 
       <div className="rec-grid">
         <div className="rec-item">
-          <input type="file" className="rec-file" />
+          <label className="rec-label">
+            📄 Chief & Imam Recommendation (PDF/Image)
+          </label>
+          <input
+            type="file"
+            className="rec-file"
+            onChange={handleFileChange}
+            accept=".pdf,.jpg,.png"
+          />
+          {uploading && (
+            <p style={{ color: "blue", fontSize: "12px", marginTop: "5px" }}>
+              ⏳ Uploading...
+            </p>
+          )}
+          {uploadedUrl && !uploading && (
+            <p style={{ color: "green", fontSize: "12px", marginTop: "5px" }}>
+              ✅ Uploaded successfully
+            </p>
+          )}
         </div>
       </div>
 
@@ -32,8 +131,9 @@ export default function RecommendationsSection({ onNext, onBack }) {
         <button
           onClick={handleNext}
           className="rec-button rec-button-next"
+          disabled={uploading || !uploadedUrl}
         >
-          ➡️ Next
+          {uploading ? "Uploading..." : "➡️ Next"}
         </button>
       </div>
     </Section>

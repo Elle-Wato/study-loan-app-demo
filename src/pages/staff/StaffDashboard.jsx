@@ -174,36 +174,457 @@ const getStudentEmail = (student) => {
               <div ref={printRef} className="printable-application">
                 <h1>Full Loan Application Review</h1>
 
-                <p><strong>Name:</strong> {getStudentName(selectedStudent)}</p>
-                <p><strong>Email:</strong> {getStudentEmail(selectedStudent)}</p>
-                <p><strong>Program:</strong> {getStudentProgram(selectedStudent)}</p>
-                <p><strong>Status:</strong> {selectedStudent.status.toUpperCase()}</p>
-                <p><strong>Submitted At:</strong> {selectedStudent.submitted_at ? new Date(selectedStudent.submitted_at).toLocaleDateString() : "N/A"}</p>
+                <p><strong>Name:</strong> {selectedStudent.name}</p>
+        <p><strong>Email:</strong> {selectedStudent.email}</p>
+        <p><strong>Program:</strong> {getDetailValue(selectedStudent.details, ["program"]) || "N/A"}</p>
+        <p><strong>Status:</strong> {selectedStudent.status?.toUpperCase()}</p>
+        <p><strong>Submitted At:</strong> {selectedStudent.submitted_at ? new Date(selectedStudent.submitted_at).toLocaleDateString() : "N/A"}</p>
 
-                <h2>Academic Information</h2>
-                <p><strong>Course:</strong> {getStudentCourse(selectedStudent)}</p>
-                <p><strong>Institution:</strong> {getStudentInstitution(selectedStudent)}</p>
+        <h2>Personal Details</h2>
+        <p><strong>Full Name:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "fullName"]) || "N/A"}</p>
+        <p><strong>Nationality:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "nationality"]) || "N/A"}</p>
+        <p><strong>ID/Passport:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "idPassportNo"]) || "N/A"}</p>
+        <p><strong>Date of Birth:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "dateOfBirth"]) || "N/A"}</p>
+        <p><strong>Marital Status:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "maritalStatus"]) || "N/A"}</p>
+        <p><strong>Telephone:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "telephoneNo"]) || "N/A"}</p>
+        <p><strong>County:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "county"]) || "N/A"}</p>
+        <p><strong>Email:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "emailAddress"]) || "N/A"}</p>
 
-                <h2>Parent / Guardian</h2>
-                <p><strong>Name:</strong> {selectedStudent.parent_name || "N/A"}</p>
-                <p><strong>Phone:</strong> {selectedStudent.parent_phone || "N/A"}</p>
+        <h2>Educational Qualifications</h2>
+        <h3>Primary School</h3>
+        <p><strong>Level:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "primary", "level"]) || "N/A"}</p>
+        <p><strong>School Name:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "primary", "schoolName"]) || "N/A"}</p>
+        <p><strong>Period:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "primary", "period"]) || "N/A"}</p>
+        <p><strong>Grade:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "primary", "grade"]) || "N/A"}</p>
 
-                <h2>Uploaded Documents</h2>
-                {selectedStudent.documents && selectedStudent.documents.length > 0 ? (
-                  <ul>
-                    {selectedStudent.documents.map(doc => (
-                      <li key={doc.id}>
-                        <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                          View Document
-                        </a>{" "}
-                        ({new Date(doc.uploaded_at).toLocaleDateString()})
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No documents uploaded.</p>
-                )}
+        <h3>Secondary School</h3>
+        <p><strong>Level:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "secondary", "level"]) || "N/A"}</p>
+        <p><strong>School Name:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "secondary", "schoolName"]) || "N/A"}</p>
+        <p><strong>Period:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "secondary", "period"]) || "N/A"}</p>
+        <p><strong>Grade:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "secondary", "grade"]) || "N/A"}</p>
+
+        <h2>Parent / Guardian</h2>
+        <p><strong>Name:</strong> {getDetailValue(selectedStudent.details, ["parentGuardian", "parentName"]) || "N/A"}</p>
+        <p><strong>Relationship:</strong> {getDetailValue(selectedStudent.details, ["parentGuardian", "relationship"]) || "N/A"}</p>
+        <p><strong>ID Number:</strong> {getDetailValue(selectedStudent.details, ["parentGuardian", "idNumber"]) || "N/A"}</p>
+        <p><strong>Telephone:</strong> {getDetailValue(selectedStudent.details, ["parentGuardian", "telephone"]) || "N/A"}</p>
+        <p><strong>Email:</strong> {getDetailValue(selectedStudent.details, ["parentGuardian", "emailAddress"]) || "N/A"}</p>
+        <p><strong>Place of Work:</strong> {getDetailValue(selectedStudent.details, ["parentGuardian", "placeOfWork"]) || "N/A"}</p>
+
+        <h3>📎 Parent/Guardian Documents</h3>
+{getDetailValue(selectedStudent.details, ["parentGuardianDocuments", "idCopy"]) && (
+  <p>
+    <strong>ID Copy:</strong>{" "}
+    <a
+      href={getDetailValue(selectedStudent.details, ["parentGuardianDocuments", "idCopy"])}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      View Document
+    </a>
+  </p>
+)}
+{getDetailValue(selectedStudent.details, ["parentGuardianDocuments", "kraPinCopy"]) && (
+  <p>
+    <strong>KRA PIN Copy:</strong>{" "}
+    <a
+      href={getDetailValue(selectedStudent.details, ["parentGuardianDocuments", "kraPinCopy"])}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      View Document
+    </a>
+  </p>
+)}
+{getDetailValue(selectedStudent.details, ["parentGuardianDocuments", "passportPhoto"]) && (
+  <p>
+    <strong>Passport Photo:</strong>{" "}
+    <a
+      href={getDetailValue(selectedStudent.details, ["parentGuardianDocuments", "passportPhoto"])}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      View Document
+    </a>
+  </p>
+)}
+
+
+        <h2>Employment Details</h2>
+        <p><strong>Name:</strong> {getDetailValue(selectedStudent.details, ["employmentDetails", "name"]) || "N/A"}</p>
+        <p><strong>Employer:</strong> {getDetailValue(selectedStudent.details, ["employmentDetails", "employerName"]) || "N/A"}</p>
+        <p><strong>Position:</strong> {getDetailValue(selectedStudent.details, ["employmentDetails", "employmentPosition"]) || "N/A"}</p>
+        <p><strong>Address:</strong> {getDetailValue(selectedStudent.details, ["employmentDetails", "employerAddress"]) || "N/A"}</p>
+        <p><strong>Telephone:</strong> {getDetailValue(selectedStudent.details, ["employmentDetails", "telephoneNumber"]) || "N/A"}</p>
+        <p><strong>Contract Type:</strong> {getDetailValue(selectedStudent.details, ["employmentDetails", "typeOfContract"]) || "N/A"}</p>
+        <p><strong>Years Worked:</strong> {getDetailValue(selectedStudent.details, ["employmentDetails", "yearsWorked"]) || "N/A"}</p>
+        <p><strong>Net Pay:</strong> {getDetailValue(selectedStudent.details, ["employmentDetails", "netPay"]) || "N/A"}</p>
+
+        <h2>Employment Documents</h2>
+{(() => {
+  const docs = getDetailValue(selectedStudent.details, ["employmentDocuments"]);
+  if (!docs) return <p>No employment documents uploaded.</p>;
+  
+  return (
+    <div>
+      {docs.employmentLetter && (
+        <p>
+          <strong>📜 Employment Letter:</strong>{" "}
+          <a href={docs.employmentLetter} target="_blank" rel="noopener noreferrer" download>
+            📥 View/Download
+          </a>
+        </p>
+      )}
+      
+      {docs.bankStatements && docs.bankStatements.length > 0 && (
+        <div>
+          <strong>🏦 Bank Statements:</strong>
+          <ul>
+            {docs.bankStatements.map((url, i) => (
+              <li key={i}>
+                <a href={url} target="_blank" rel="noopener noreferrer" download>
+                  📥 Statement {i + 1}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
+      {docs.paySlips && docs.paySlips.length > 0 && (
+        <div>
+          <strong>💵 Pay Slips:</strong>
+          <ul>
+            {docs.paySlips.map((url, i) => (
+              <li key={i}>
+                <a href={url} target="_blank" rel="noopener noreferrer" download>
+                  📥 Pay Slip {i + 1}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
+      {docs.hrStamp && (
+        <p>
+          <strong>✍️ HR Stamp & Signature:</strong>{" "}
+          <a href={docs.hrStamp} target="_blank" rel="noopener noreferrer" download>
+            📥 View/Download
+          </a>
+        </p>
+      )}
+      
+      {!docs.employmentLetter && !docs.bankStatements?.length && !docs.paySlips?.length && !docs.hrStamp && (
+        <p>No documents uploaded.</p>
+      )}
+    </div>
+  );
+})()}
+
+ <h2>Financial Details</h2>
+        <p><strong>Bank Name:</strong> {getDetailValue(selectedStudent.details, ["financialDetails", "bankName"]) || "N/A"}</p>
+        <p><strong>Account Number:</strong> {getDetailValue(selectedStudent.details, ["financialDetails", "accountNumber"]) || "N/A"}</p>
+        <p><strong>Has Loans:</strong> {getDetailValue(selectedStudent.details, ["financialDetails", "hasLoans"]) || "N/A"}</p>
+        <p><strong>Loan Amount:</strong> {getDetailValue(selectedStudent.details, ["financialDetails", "loanAmount"]) || "N/A"}</p>
+
+        <h2>Loan Details</h2>
+        <p><strong>University:</strong> {getDetailValue(selectedStudent.details, ["loanDetails", "universityName"]) || "N/A"}</p>
+        <p><strong>Study Program:</strong> {getDetailValue(selectedStudent.details, ["loanDetails", "studyProgram"]) || "N/A"}</p>
+        <p><strong>Level of Study:</strong> {getDetailValue(selectedStudent.details, ["loanDetails", "levelOfStudy"]) || "N/A"}</p>
+        <p><strong>Amount Applied:</strong> {getDetailValue(selectedStudent.details, ["loanDetails", "amountApplied"]) || "N/A"}</p>
+        <p><strong>Repayment Period:</strong> {getDetailValue(selectedStudent.details, ["loanDetails", "repaymentPeriod"]) || "N/A"}</p>
+
+        <h2>Referees</h2>
+
+<h3>1st Referee (Spouse)</h3>
+<p><strong>Name:</strong> {getDetailValue(selectedStudent.details, ["referees", "firstReferee", "name"]) || "N/A"}</p>
+<p><strong>Contacts:</strong> {getDetailValue(selectedStudent.details, ["referees", "firstReferee", "contacts"]) || "N/A"}</p>
+<p><strong>Email:</strong> {getDetailValue(selectedStudent.details, ["referees", "firstReferee", "email"]) || "N/A"}</p>
+<p><strong>Place of Work:</strong> {getDetailValue(selectedStudent.details, ["referees", "firstReferee", "placeOfWork"]) || "N/A"}</p>
+
+<h3>2nd Referee (Colleague)</h3>
+<p><strong>Name:</strong> {getDetailValue(selectedStudent.details, ["referees", "secondReferee", "name"]) || "N/A"}</p>
+<p><strong>Contacts:</strong> {getDetailValue(selectedStudent.details, ["referees", "secondReferee", "contacts"]) || "N/A"}</p>
+<p><strong>Email:</strong> {getDetailValue(selectedStudent.details, ["referees", "secondReferee", "email"]) || "N/A"}</p>
+<p><strong>Place of Work:</strong> {getDetailValue(selectedStudent.details, ["referees", "secondReferee", "placeOfWork"]) || "N/A"}</p>
+
+<h3>3rd Referee (Other)</h3>
+<p><strong>Name:</strong> {getDetailValue(selectedStudent.details, ["referees", "thirdReferee", "name"]) || "N/A"}</p>
+<p><strong>Contacts:</strong> {getDetailValue(selectedStudent.details, ["referees", "thirdReferee", "contacts"]) || "N/A"}</p>
+<p><strong>Email:</strong> {getDetailValue(selectedStudent.details, ["referees", "thirdReferee", "email"]) || "N/A"}</p>
+<p><strong>Place of Work:</strong> {getDetailValue(selectedStudent.details, ["referees", "thirdReferee", "placeOfWork"]) || "N/A"}</p>
+
+
+<h2>Budget Planner</h2>
+{getDetailValue(selectedStudent.details, ["budgetDetails"]) ? (
+  <div>
+    <h3>💰 Income</h3>
+    <p><strong>Net Salary:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "netSalary"]) || "N/A"}</p>
+    <p><strong>Business Income:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "businessIncome"]) || "N/A"}</p>
+    <p><strong>Other Income:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "otherIncome"]) || "N/A"}</p>
+    
+    <h3>📊 Expenses</h3>
+    <p><strong>Household Expenses:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "householdExpenses"]) || "N/A"}</p>
+    <p><strong>Rental Expenses:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "rentalExpenses"]) || "N/A"}</p>
+    <p><strong>Transport Expenses:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "transportExpenses"]) || "N/A"}</p>
+    <p><strong>Other Expenses:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "otherExpenses"]) || "N/A"}</p>
+
+    <h3>💵 Summary</h3>
+    <p>
+      <strong>Total Income:</strong> KSh {
+        (parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "netSalary"]) || 0) +
+         parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "businessIncome"]) || 0) +
+         parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherIncome"]) || 0)).toLocaleString()
+      }
+    </p>
+    <p>
+      <strong>Total Expenses:</strong> KSh {
+        (parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "householdExpenses"]) || 0) +
+         parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "rentalExpenses"]) || 0) +
+         parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "transportExpenses"]) || 0) +
+         parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherExpenses"]) || 0)).toLocaleString()
+      }
+    </p>
+    <p>
+  <strong>Net Balance:</strong> 
+  <span style={{ 
+    color: ((parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "netSalary"]) || 0) +
+            parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "businessIncome"]) || 0) +
+            parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherIncome"]) || 0)) -
+           (parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "householdExpenses"]) || 0) +
+            parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "rentalExpenses"]) || 0) +
+            parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "transportExpenses"]) || 0) +
+            parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherExpenses"]) || 0))) < 0 
+      ? 'red' 
+      : 'green',
+    fontWeight: 'bold'
+  }}>
+    KSh {
+      ((parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "netSalary"]) || 0) +
+        parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "businessIncome"]) || 0) +
+        parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherIncome"]) || 0)) -
+       (parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "householdExpenses"]) || 0) +
+        parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "rentalExpenses"]) || 0) +
+        parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "transportExpenses"]) || 0) +
+        parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherExpenses"]) || 0))).toLocaleString()
+    }
+  </span>
+</p>
+  </div>
+) : (
+  <p>No budget details provided.</p>
+)}
+
+
+
+                <h2>Student Requirements Documents</h2>
+{(() => {
+  const docs = getDetailValue(selectedStudent.details, ["documentsUploaded"]);
+  if (!docs) return <p>No documents uploaded.</p>;
+  
+  const docLabels = {
+    cv: "📄 Curriculum Vitae (CV)",
+    form4Certificate: "📜 Form 4 Certificate",
+    schoolLeavingCertificate: "🏫 School Leaving Certificate",
+    admissionLetter: "🎓 University Admission Letter",
+    nationalID: "🆔 National ID",
+    kraPinDoc: "📋 KRA PIN Document",
+    passportPhoto: "📸 Passport Size Photo",
+    loanEssay: "✍️ Loan Justification Essay"
+  };
+
+  const uploadedDocs = Object.entries(docs).filter(([_, url]) => url);
+  
+  return uploadedDocs.length > 0 ? (
+    <div>
+      {uploadedDocs.map(([key, url]) => (
+        <p key={key}>
+          <strong>{docLabels[key]}:</strong>{" "}
+          <a href={url} target="_blank" rel="noopener noreferrer" download>
+            📥 View/Download
+          </a>
+        </p>
+      ))}
+    </div>
+  ) : (
+    <p>No documents uploaded.</p>
+  );
+})()}
               </div>
+
+              <h2>Community Recommendations</h2>
+{getDetailValue(selectedStudent.details, ["recommendations", "chiefAndImamRecommendation"]) ? (
+  <p>
+    <strong>Chief & Imam Recommendation:</strong>{" "}
+    <a
+      href={getDetailValue(selectedStudent.details, ["recommendations", "chiefAndImamRecommendation"])}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      📄 View Document
+    </a>
+  </p>
+) : (
+  <p>No recommendation uploaded.</p>
+)}
+
+<h2>Guarantors</h2>
+{selectedStudent.details?.guarantors && selectedStudent.details.guarantors.length > 0 ? (
+  selectedStudent.details.guarantors.map((guarantor, index) => (
+    <div key={index} style={{ marginBottom: "30px", borderBottom: "2px solid #ddd", paddingBottom: "20px" }}>
+      <h3>Guarantor {index + 1}</h3>
+      
+      <h4>Personal Details</h4>
+      <p><strong>Full Name:</strong> {guarantor.fullName || "N/A"}</p>
+      <p><strong>ID Number:</strong> {guarantor.idNumber || "N/A"}</p>
+      <p><strong>Phone Number:</strong> {guarantor.phoneNumber || "N/A"}</p>
+      <p><strong>Email:</strong> {guarantor.emailAddress || "N/A"}</p>
+      <p><strong>Marital Status:</strong> {guarantor.maritalStatus || "N/A"}</p>
+      <p><strong>No. of Children:</strong> {guarantor.noOfChildren || "N/A"}</p>
+      <p><strong>Permanent Address:</strong> {guarantor.permanentAddress || "N/A"}</p>
+      <p><strong>Physical Address:</strong> {guarantor.physicalAddress || "N/A"}</p>
+      <p><strong>Place of Work:</strong> {guarantor.placeOfWork || "N/A"}</p>
+      <p><strong>Position Held:</strong> {guarantor.positionHeld || "N/A"}</p>
+      <p><strong>Net Salary:</strong> {guarantor.netSalary || "N/A"}</p>
+
+      <h4>Loan Details</h4>
+      <p><strong>Applicant's Name:</strong> {guarantor.applicantName || "N/A"}</p>
+      <p><strong>Applicant's ID:</strong> {guarantor.applicantId || "N/A"}</p>
+      <p><strong>Loan Amount Guaranteed:</strong> {guarantor.loanAmount || "N/A"}</p>
+      <p><strong>Relationship with Borrower:</strong> {guarantor.relationship || "N/A"}</p>
+      <p><strong>Other Guarantee:</strong> {guarantor.otherGuarantee || "N/A"}</p>
+      {guarantor.otherGuarantee === "Yes" && (
+        <>
+          <p><strong>Other Guarantee Amount:</strong> {guarantor.otherGuaranteeAmount || "N/A"}</p>
+          <p><strong>Maturity Date:</strong> {guarantor.maturityDate || "N/A"}</p>
+        </>
+      )}
+      <p><strong>Current Loan:</strong> {guarantor.currentLoan || "N/A"}</p>
+
+      <h4>Referees</h4>
+      <p><strong>Referee 1 Name:</strong> {guarantor.referee1Name || "N/A"}</p>
+      <p><strong>Referee 1 Phone:</strong> {guarantor.referee1Phone || "N/A"}</p>
+      <p><strong>Referee 1 Email:</strong> {guarantor.referee1Email || "N/A"}</p>
+      <p><strong>Referee 2 Name:</strong> {guarantor.referee2Name || "N/A"}</p>
+      <p><strong>Referee 2 Phone:</strong> {guarantor.referee2Phone || "N/A"}</p>
+      <p><strong>Referee 2 Email:</strong> {guarantor.referee2Email || "N/A"}</p>
+
+      <h4>📎 Uploaded Documents</h4>
+      {guarantor.consentFileUrl && (
+        <p>
+          <strong>Consent Form:</strong>{" "}
+          <a
+            href={guarantor.consentFileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+          >
+            📄 View/Download
+          </a>
+        </p>
+      )}
+      {guarantor.idFileUrl && (
+        <p>
+          <strong>ID Copy:</strong>{" "}
+          <a
+            href={guarantor.idFileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+          >
+            🆔 View/Download
+          </a>
+        </p>
+      )}
+      {guarantor.photoFileUrl && (
+        <p>
+          <strong>Passport Photo:</strong>{" "}
+          <a
+            href={guarantor.photoFileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+          >
+            📸 View/Download
+          </a>
+        </p>
+      )}
+      {!guarantor.consentFileUrl && !guarantor.idFileUrl && !guarantor.photoFileUrl && (
+        <p>No documents uploaded.</p>
+      )}
+    </div>
+  ))
+) : (
+  <p>No guarantors added.</p>
+)}
+
+<h2>Consent Form</h2>
+{getDetailValue(selectedStudent.details, ["consentForm"]) ? (
+  <div>
+    <h3>Student Consent</h3>
+    <p><strong>Name:</strong> {getDetailValue(selectedStudent.details, ["consentForm", "studentName"]) || "N/A"}</p>
+    <p><strong>Date:</strong> {getDetailValue(selectedStudent.details, ["consentForm", "studentDate"]) || "N/A"}</p>
+    {getDetailValue(selectedStudent.details, ["consentForm", "studentSignature"]) && (
+      <div>
+        <p><strong>Signature:</strong></p>
+        <img 
+          src={getDetailValue(selectedStudent.details, ["consentForm", "studentSignature"])} 
+          alt="Student Signature" 
+          style={{ 
+            border: "1px solid #ccc", 
+            maxWidth: "400px", 
+            display: "block",
+            marginTop: "10px",
+            marginBottom: "10px"
+          }}
+        />
+        <a 
+          href={getDetailValue(selectedStudent.details, ["consentForm", "studentSignature"])}
+          download="student_signature.png"
+          style={{ color: "#007bff", textDecoration: "none" }}
+        >
+          📥 Download Student Signature
+        </a>
+      </div>
+    )}
+
+    <h3>Guardian Consent</h3>
+    <p><strong>Name:</strong> {getDetailValue(selectedStudent.details, ["consentForm", "guardianName"]) || "N/A"}</p>
+    <p><strong>Date:</strong> {getDetailValue(selectedStudent.details, ["consentForm", "guardianDate"]) || "N/A"}</p>
+    {getDetailValue(selectedStudent.details, ["consentForm", "guardianSignature"]) && (
+      <div>
+        <p><strong>Signature:</strong></p>
+        <img 
+          src={getDetailValue(selectedStudent.details, ["consentForm", "guardianSignature"])} 
+          alt="Guardian Signature" 
+          style={{ 
+            border: "1px solid #ccc", 
+            maxWidth: "400px", 
+            display: "block",
+            marginTop: "10px",
+            marginBottom: "10px"
+          }}
+        />
+        <a 
+          href={getDetailValue(selectedStudent.details, ["consentForm", "guardianSignature"])}
+          download="guardian_signature.png"
+          style={{ color: "#007bff", textDecoration: "none" }}
+        >
+          📥 Download Guardian Signature
+        </a>
+      </div>
+    )}
+
+    <p><strong>Submitted At:</strong> {
+      getDetailValue(selectedStudent.details, ["consentForm", "submittedAt"]) 
+        ? new Date(getDetailValue(selectedStudent.details, ["consentForm", "submittedAt"])).toLocaleString() 
+        : "N/A"
+    }</p>
+  </div>
+) : (
+  <p>Consent form not submitted.</p>
+)}
 
               <div className="modal-actions">
                 <button onClick={handlePrint}>📄 Download / Print</button>
