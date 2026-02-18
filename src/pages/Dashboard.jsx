@@ -50,18 +50,18 @@ export default function Dashboard() {
             <h4>📥 Downloadable Forms</h4>
             <ul>
               <li>
-                <a href="/hr-form.pdf" download className="dash-link">
+                <a href="/HR Stamp Form.pdf" download className="dash-link">
                   ⬇️ Download HR Stamp Form (for Employed)
                 </a>
               </li>
               <li>
-                <a href="/chief-recommendation.pdf" download className="dash-link">
+                <a href="/Chief and Imam Stamp form.pdf" download className="dash-link">
                   ⬇️ Download Chief & Imam Recommendation Form (for Undergraduate, UUSSP, and Diploma)
                 </a>
               </li>
               
               <li>
-                <a href="/guarantor-application.pdf" download className="dash-link">
+                <a href="/Guarantor Application Form Consent.pdf" download className="dash-link">
                   ⬇️ Download Guarantor Application Form Consent
                 </a>
               </li>

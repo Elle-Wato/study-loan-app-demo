@@ -1,34 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Section from "../../components/Section";
 import ProgramSelect from "../../components/ProgramSelect";
 
 const API_BASE_URL = "http://127.0.0.1:5000";
 
-export default function StudentRequirements({ onNext }) {
-  const [program, setProgram] = useState(""); // Track selected program
-  const [personalDetails, setPersonalDetails] = useState({
-    fullName: "",
-    nationality: "",
-    idPassportNo: "",
-    dateOfBirth: "",
-    maritalStatus: "",
-    noOfChildren: "",
-    telephoneNo: "",
-    kraPin: "",
-    county: "",
-    postalAddress: "",
-    poBox: "",
-    socialMedia: "",
-    residentialAddress: "",
-    permanentHomeAddress: "",
-    emailAddress: "",
-  });
-  const [educationalQualifications, setEducationalQualifications] = useState({
+export default function StudentRequirements({ onNext, formData, updateFormData }) {
+  const defaultEducationalQualifications = {
     primary: { level: "", schoolName: "", period: "", grade: "" },
     secondary: { level: "", schoolName: "", period: "", grade: "" },
     postSecondary: { level: "", schoolName: "", period: "", grade: "" },
-  });
+  };
+
+  const [program, setProgram] = useState(formData.program || "");
+  const [personalDetails, setPersonalDetails] = useState(formData.personalDetails || {});
+  const [educationalQualifications, setEducationalQualifications] = useState(
+    formData.educationalQualifications && Object.keys(formData.educationalQualifications).length > 0
+      ? formData.educationalQualifications
+      : defaultEducationalQualifications
+  );
 
   const [files, setFiles] = useState({
     cv: null,
@@ -40,6 +30,25 @@ export default function StudentRequirements({ onNext }) {
     passportPhoto: null,
     loanEssay: null,
   });
+
+  const [uploadedUrls, setUploadedUrls] = useState(() => formData.documentsUploaded || {});
+
+  // Update parent formData on changes
+  useEffect(() => {
+    updateFormData("program", program);
+  }, [program]);
+
+  useEffect(() => {
+    updateFormData("personalDetails", personalDetails);
+  }, [personalDetails]);
+
+  useEffect(() => {
+    updateFormData("educationalQualifications", educationalQualifications);
+  }, [educationalQualifications]);
+
+  useEffect(() => {
+  updateFormData("documentsUploaded", uploadedUrls);
+}, [uploadedUrls]);
 
   // Handlers for text inputs
   const handlePersonalChange = (e) => {
@@ -56,66 +65,75 @@ export default function StudentRequirements({ onNext }) {
 
   // Handlers for file inputs
   const handleFileChange = (e) => {
-    const { name, files: selectedFiles } = e.target;
-    setFiles({ ...files, [name]: selectedFiles[0] });
-  };
+  const { name, files: selectedFiles } = e.target;
+  if (selectedFiles && selectedFiles[0]) {
+    setFiles(prev => ({ ...prev, [name]: selectedFiles[0] }));
+    uploadFile(selectedFiles[0]).then(url => {
+      setUploadedUrls(prev => ({ ...prev, [name]: url }));
+    });
+  }
+};
+
 
   // Upload file helper
   const uploadFile = async (file) => {
     if (!file) return null;
     const token = localStorage.getItem("token");
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await axios.post(`${API_BASE_URL}/uploads/upload`, formData, {
+    const formDataUpload = new FormData();
+    formDataUpload.append("file", file);
+
+    const res = await axios.post(`${API_BASE_URL}/uploads/upload`, formDataUpload, {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data"
-      }
+        "Content-Type": "multipart/form-data",
+      },
+      // timeout removed to prevent timeout error
     });
-    return res.data.file_url; // Adjust if backend sends in other key
+    return res.data.file_url;
   };
 
   const handleNext = async () => {
-    if (!program) {
-      alert("Please select a program before proceeding.");
-      return;
-    }
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You must be logged in to save data.");
-      return;
-    }
+  if (!program) {
+    alert("Please select a program before proceeding.");
+    return;
+  }
 
-    try {
-      // Upload files in parallel and store URLs
-      const uploadedFiles = await Promise.all(Object.values(files).map(uploadFile));
-      const fileKeys = Object.keys(files);
-      // Map uploaded urls back to keys
-      const uploadedFileUrls = {};
-      uploadedFiles.forEach((url, i) => {
-        if (url) uploadedFileUrls[fileKeys[i]] = url;
-      });
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You must be logged in to save data.");
+    return;
+  }
 
-      // Compose formData to send
-      const formData = {
-        program,
-        personalDetails,
-        educationalQualifications,
-        documentsUploaded: uploadedFileUrls, // save file URLs here or adjust as needed
-      };
+  try {
+    const payload = {
+      program,
+      personalDetails,
+      educationalQualifications,
+      documentsUploaded: uploadedUrls, // 👈 use stored URLs
+    };
 
-      await axios.patch(`${API_BASE_URL}/admin/students/update-details`, formData, {
+    await axios.patch(
+      `${API_BASE_URL}/admin/students/update-details`,
+      payload,
+      {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      });
-      onNext();
-    } catch (error) {
-      console.error("Error saving data:", error);
-      alert("Failed to save data. Please try again.");
-    }
-  };
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    onNext();
+  } catch (error) {
+    console.error("Error saving data:", error);
+    alert("Failed to save data.");
+  }
+};
+
+
+   const primary = educationalQualifications.primary || defaultEducationalQualifications.primary;
+  const secondary = educationalQualifications.secondary || defaultEducationalQualifications.secondary;
+  const postSecondary = educationalQualifications.postSecondary || defaultEducationalQualifications.postSecondary;
 
   return (
     <Section title="Student Requirements" className="req-section">
@@ -198,34 +216,98 @@ export default function StudentRequirements({ onNext }) {
           <div className="req-field">
             <label className="req-label" htmlFor="cv-upload">📄 Curriculum Vitae (CV)</label>
             <input type="file" name="cv" id="cv-upload" className="req-file" onChange={handleFileChange} />
+            {uploadedUrls.cv && (
+    <div style={{ marginTop: "5px", fontSize: "14px" }}>
+      ✅ Uploaded |
+      <a href={uploadedUrls.cv} target="_blank" rel="noopener noreferrer">
+        View File
+      </a>
+    </div>
+  )}
           </div>
           <div className="req-field">
             <label className="req-label" htmlFor="form4-upload">📜 Form 4 Certificate</label>
             <input type="file" name="form4Certificate" id="form4-upload" className="req-file" onChange={handleFileChange} />
+            {uploadedUrls.form4Certificate && (
+    <div style={{ marginTop: "5px", fontSize: "14px" }}>
+      ✅ Uploaded |
+      <a href={uploadedUrls.cv} target="_blank" rel="noopener noreferrer">
+        View File
+      </a>
+    </div>
+  )}
           </div>
           <div className="req-field">
             <label className="req-label" htmlFor="school-leaving-upload">🏫 School Leaving Certificate</label>
             <input type="file" name="schoolLeavingCertificate" id="school-leaving-upload" className="req-file" onChange={handleFileChange} />
+            {uploadedUrls.schoolLeavingCertificate && (
+    <div style={{ marginTop: "5px", fontSize: "14px" }}>
+      ✅ Uploaded |
+      <a href={uploadedUrls.schoolLeavingCertificate} target="_blank" rel="noopener noreferrer">
+        View File
+      </a>
+    </div>
+  )}
           </div>
           <div className="req-field">
             <label className="req-label" htmlFor="admission-letter-upload">🎓 University Admission Letter</label>
             <input type="file" name="admissionLetter" id="admission-letter-upload" className="req-file" onChange={handleFileChange} />
+              {uploadedUrls.admissionLetter && (
+    <div style={{ marginTop: "5px", fontSize: "14px" }}>
+      ✅ Uploaded |
+      <a href={uploadedUrls.admissionLetter} target="_blank" rel="noopener noreferrer">
+        View File
+      </a>
+    </div>
+  )}
           </div>
           <div className="req-field">
             <label className="req-label" htmlFor="id-upload">🆔 National ID</label>
             <input type="file" name="nationalID" id="id-upload" className="req-file" onChange={handleFileChange} />
+            {uploadedUrls.nationalID && (
+    <div style={{ marginTop: "5px", fontSize: "14px" }}>
+      ✅ Uploaded |
+      <a href={uploadedUrls.nationalID} target="_blank" rel="noopener noreferrer">
+        View File
+      </a>
+    </div>
+  )}
           </div>
           <div className="req-field">
             <label className="req-label" htmlFor="kra-upload">📋 KRA PIN</label>
             <input type="file" name="kraPinDoc" id="kra-upload" className="req-file" onChange={handleFileChange} />
+            {uploadedUrls.kraPinDoc && (
+    <div style={{ marginTop: "5px", fontSize: "14px" }}>
+      ✅ Uploaded |
+      <a href={uploadedUrls.kraPinDoc} target="_blank" rel="noopener noreferrer">
+        View File
+      </a>
+    </div>
+  )}
           </div>
           <div className="req-field">
             <label className="req-label" htmlFor="passport-photo-upload">📸 Passport Size Photo</label>
             <input type="file" name="passportPhoto" id="passport-photo-upload" className="req-file" onChange={handleFileChange} />
+            {uploadedUrls.passportPhoto && (
+    <div style={{ marginTop: "5px", fontSize: "14px" }}>
+      ✅ Uploaded |
+      <a href={uploadedUrls.passportPhoto} target="_blank" rel="noopener noreferrer">
+        View File
+      </a>
+    </div>
+  )}
           </div>
           <div className="req-field">
             <label className="req-label" htmlFor="essay-upload">✍️ 300-word Loan Justification Essay</label>
             <input type="file" name="loanEssay" id="essay-upload" className="req-file" onChange={handleFileChange} />
+            {uploadedUrls.loanEssay && (
+    <div style={{ marginTop: "5px", fontSize: "14px" }}>
+      ✅ Uploaded |
+      <a href={uploadedUrls.loanEssay} target="_blank" rel="noopener noreferrer">
+        View File
+      </a>
+    </div>
+  )}
           </div>
         </div>
       </div>

@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Section from "../../components/Section";
 
 const API_BASE_URL = "http://127.0.0.1:5000";
 
-export default function BudgetPlannerSection({ onNext, onBack }) {
-  const [budgetDetails, setBudgetDetails] = useState({
+export default function BudgetPlannerSection({ onNext, onBack, formData, updateFormData }) {
+  const [budgetDetails, setBudgetDetails] = useState(formData.budgetDetails || {
     netSalary: "",
     businessIncome: "",
     otherIncome: "",
@@ -14,6 +14,10 @@ export default function BudgetPlannerSection({ onNext, onBack }) {
     transportExpenses: "",
     otherExpenses: ""
   });
+
+  useEffect(() => {
+    updateFormData("budgetDetails", budgetDetails);
+  }, [budgetDetails]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

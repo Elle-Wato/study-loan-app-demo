@@ -1947,3 +1947,38 @@
     transform: translateY(0);
   }
 }
+
+@media print {
+  /* Hide everything except the modal content */
+  body * {
+    visibility: hidden;
+  }
+  
+  .printable-application,
+  .printable-application * {
+    visibility: visible;
+  }
+  
+  .printable-application {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  /* Hide buttons when printing */
+  .modal-actions,
+  button {
+    display: none !important;
+  }
+  
+  /* Better formatting for print */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+  
+  img {
+    max-width: 300px;
+    page-break-inside: avoid;
+  }
+}

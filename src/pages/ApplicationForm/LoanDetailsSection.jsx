@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Section from "../../components/Section";
 
 const API_BASE_URL = "http://127.0.0.1:5000";
 
-export default function LoanDetailsSection({ onNext, onBack }) {
-  const [loanDetails, setLoanDetails] = useState({
+export default function LoanDetailsSection({ onNext, onBack, formData, updateFormData }) {
+  const [loanDetails, setLoanDetails] = useState(formData.loanDetails || {
     universityName: "",
     studyProgram: "",
     levelOfStudy: "",
@@ -13,6 +13,10 @@ export default function LoanDetailsSection({ onNext, onBack }) {
     repaymentPeriod: "",
     loanSecurity: "",
   });
+
+  useEffect(() => {
+    updateFormData("loanDetails", loanDetails);
+  }, [loanDetails]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

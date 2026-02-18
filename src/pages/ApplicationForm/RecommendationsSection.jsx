@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Section from "../../components/Section";
 
 const API_BASE_URL = "http://127.0.0.1:5000";
 
-export default function RecommendationsSection({ onNext, onBack }) {
+export default function RecommendationsSection({ onNext, onBack, formData, updateFormData }) {
+  // Initialize file and uploaded URL from formData for persistence
   const [recommendationFile, setRecommendationFile] = useState(null);
-  const [uploadedUrl, setUploadedUrl] = useState("");
+  const [uploadedUrl, setUploadedUrl] = useState(formData.recommendations?.chiefAndImamRecommendation || "");
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    // Sync uploaded URL with parent
+    updateFormData("recommendations", { chiefAndImamRecommendation: uploadedUrl });
+  }, [uploadedUrl]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -27,12 +33,12 @@ export default function RecommendationsSection({ onNext, onBack }) {
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
 
       const res = await axios.post(
         `${API_BASE_URL}/uploads/upload`,
-        formData,
+        formDataUpload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -67,11 +73,7 @@ export default function RecommendationsSection({ onNext, onBack }) {
     try {
       await axios.patch(
         `${API_BASE_URL}/admin/students/update-details`,
-        {
-          recommendations: {
-            chiefAndImamRecommendation: uploadedUrl,
-          },
-        },
+        { recommendations: { chiefAndImamRecommendation: uploadedUrl } },
         {
           headers: {
             Authorization: `Bearer ${token}`,

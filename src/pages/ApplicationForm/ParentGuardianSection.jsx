@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Section from "../../components/Section";
 
 const API_BASE_URL = "http://127.0.0.1:5000";
 
-export default function ParentGuardianSection({ onNext, onBack }) {
-  const [parentGuardian, setParentGuardian] = useState({
+export default function ParentGuardianSection({ onNext, onBack, formData, updateFormData }) {
+  const [parentGuardian, setParentGuardian] = useState(formData.parentGuardian || {
     parentName: "",
     relationship: "",
     idNumber: "",
@@ -23,13 +23,14 @@ export default function ParentGuardianSection({ onNext, onBack }) {
     passportPhoto: null,
   });
 
-  const [uploadedUrls, setUploadedUrls] = useState({
+  const [uploadedUrls, setUploadedUrls] = useState(formData.parentGuardianDocuments ||{
     idCopy: "",
     kraPinCopy: "",
     passportPhoto: "",
   });
 
   const [uploading, setUploading] = useState(false);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -54,12 +55,12 @@ export default function ParentGuardianSection({ onNext, onBack }) {
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
 
       const res = await axios.post(
         `${API_BASE_URL}/uploads/upload`,
-        formData,
+        formDataUpload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -69,7 +70,12 @@ export default function ParentGuardianSection({ onNext, onBack }) {
       );
 
       const fileUrl = res.data.file_url;
-      setUploadedUrls((prev) => ({ ...prev, [fieldName]: fileUrl }));
+      setUploadedUrls((prev) => {
+  const updated = { ...prev, [fieldName]: fileUrl };
+  updateFormData("parentGuardianDocuments", updated);
+  return updated;
+});
+
       console.log(`✅ ${fieldName} uploaded:`, fileUrl);
     } catch (error) {
       console.error(`❌ Error uploading ${fieldName}:`, error);
@@ -202,9 +208,19 @@ export default function ParentGuardianSection({ onNext, onBack }) {
             accept=".pdf,.jpg,.png"
           />
           {uploadedUrls.idCopy && (
-            <p style={{ color: "green", fontSize: "12px" }}>✅ Uploaded</p>
-          )}
-        </div>
+  <div style={{ fontSize: "12px", marginTop: "4px" }}>
+    ✅ Uploaded |{" "}
+    <a
+      href={uploadedUrls.idCopy}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      View File
+    </a>
+  </div>
+)}
+</div>
+
 
         <div className="parent-field">
           <label className="parent-label" htmlFor="kraPinCopy">
@@ -219,7 +235,16 @@ export default function ParentGuardianSection({ onNext, onBack }) {
             accept=".pdf,.jpg,.png"
           />
           {uploadedUrls.kraPinCopy && (
-            <p style={{ color: "green", fontSize: "12px" }}>✅ Uploaded</p>
+  <div style={{ fontSize: "12px", marginTop: "4px" }}>
+    ✅ Uploaded |{" "}
+    <a
+      href={uploadedUrls.kraPinCopy}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      View File
+    </a>
+  </div>
           )}
         </div>
 
@@ -236,7 +261,16 @@ export default function ParentGuardianSection({ onNext, onBack }) {
             accept=".jpg,.png"
           />
           {uploadedUrls.passportPhoto && (
-            <p style={{ color: "green", fontSize: "12px" }}>✅ Uploaded</p>
+  <div style={{ fontSize: "12px", marginTop: "4px" }}>
+    ✅ Uploaded |{" "}
+    <a
+      href={uploadedUrls.passportPhoto}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      View File
+    </a>
+  </div>
           )}
         </div>
       </div>

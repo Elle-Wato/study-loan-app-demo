@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Section from "../../components/Section";
 
 const API_BASE_URL = "http://127.0.0.1:5000";
 
-export default function RefereesSection({ onNext, onBack }) {
-  const [referees, setReferees] = useState({
+export default function RefereesSection({ onNext, onBack, formData, updateFormData }) {
+  const [referees, setReferees] = useState(formData.referees || {
     firstReferee: {
       name: "",
       contacts: "",
@@ -25,6 +25,10 @@ export default function RefereesSection({ onNext, onBack }) {
       placeOfWork: ""
     }
   });
+
+  useEffect(() => {
+    updateFormData("referees", referees);
+  }, [referees]);
 
   const handleChange = (referee, field, value) => {
     setReferees({

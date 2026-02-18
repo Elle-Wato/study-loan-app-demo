@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Section from "../../components/Section";
 
 const API_BASE_URL = "http://127.0.0.1:5000";
 
-export default function EmploymentDetails({ onNext, onBack }) {
-  const [employmentDetails, setEmploymentDetails] = useState({
+export default function EmploymentDetails({ onNext, onBack, formData, updateFormData }) {
+  const [employmentDetails, setEmploymentDetails] = useState(formData.employmentDetails || {
     name: "",
     employerName: "",
     employmentPosition: "",
@@ -24,12 +24,20 @@ export default function EmploymentDetails({ onNext, onBack }) {
     hrStamp: null,
   });
 
-  const [uploadedUrls, setUploadedUrls] = useState({
+  const [uploadedUrls, setUploadedUrls] = useState(formData.employmentDocuments || {
     employmentLetter: "",
     bankStatements: [],
     paySlips: [],
     hrStamp: "",
   });
+
+  useEffect(() => {
+    updateFormData("employmentDetails", employmentDetails);
+  }, [employmentDetails]);
+
+  useEffect(() => {
+    updateFormData("employmentDocuments", uploadedUrls);
+  }, [uploadedUrls]);
 
   const [uploading, setUploading] = useState(false);
 

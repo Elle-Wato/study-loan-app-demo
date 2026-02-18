@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Section from "../../components/Section";
 
 const API_BASE_URL = "http://127.0.0.1:5000";
 
-export default function FinancialSection({ onNext, onBack }) {
-  const [financialDetails, setFinancialDetails] = useState({
+export default function FinancialSection({ onNext, onBack, formData, updateFormData }) {
+  const [financialDetails, setFinancialDetails] = useState(formData.financialDetails || {
     bankName: "",
     accountNumber: "",
     hasLoans: "",
@@ -13,6 +13,10 @@ export default function FinancialSection({ onNext, onBack }) {
     outstandingBalance: "",
     monthlyRepayment: "",
   });
+
+  useEffect(() => {
+    updateFormData("financialDetails", financialDetails);
+  }, [financialDetails]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

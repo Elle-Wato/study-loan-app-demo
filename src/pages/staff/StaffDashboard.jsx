@@ -63,10 +63,9 @@ export default function StaffDashboard() {
     }
   };
 
-  const handlePrint = useReactToPrint({
-    content: () => printRef.current,
-    documentTitle: `Application_${selectedStudent?.name || "Student"}`
-  });
+  const handlePrint = () => {
+  window.print();
+};
 
   const logout = () => {
     localStorage.clear();
@@ -451,7 +450,7 @@ const getStudentEmail = (student) => {
     <p>No documents uploaded.</p>
   );
 })()}
-              </div>
+              
 
               <h2>Community Recommendations</h2>
 {getDetailValue(selectedStudent.details, ["recommendations", "chiefAndImamRecommendation"]) ? (
@@ -562,6 +561,11 @@ const getStudentEmail = (student) => {
 <h2>Consent Form</h2>
 {getDetailValue(selectedStudent.details, ["consentForm"]) ? (
   <div>
+    {/* 🔥 CONSENT STATEMENT */}
+    <p style={{ fontStyle: 'italic', marginBottom: '20px' }}>
+      <strong>Consent Declaration:</strong><br />
+      "I (We) consent to the collection, processing, transmission and storage by the Trust in any form whatsoever, of any data of a professional or personal nature that have been provided by the applicant as stipulated in page one of the requirements which is necessary for the purposes of the loan application."
+    </p>
     <h3>Student Consent</h3>
     <p><strong>Name:</strong> {getDetailValue(selectedStudent.details, ["consentForm", "studentName"]) || "N/A"}</p>
     <p><strong>Date:</strong> {getDetailValue(selectedStudent.details, ["consentForm", "studentDate"]) || "N/A"}</p>
@@ -625,17 +629,20 @@ const getStudentEmail = (student) => {
 ) : (
   <p>Consent form not submitted.</p>
 )}
+</div>
 
               <div className="modal-actions">
-                <button onClick={handlePrint}>📄 Download / Print</button>
-                <button className="approve-btn" onClick={() => updateStatus(selectedStudent.id, "approved")}>
-                  Approve
-                </button>
-                <button className="reject-btn" onClick={() => updateStatus(selectedStudent.id, "rejected")}>
-                  Reject
-                </button>
-                <button onClick={() => setSelectedStudent(null)}>Close</button>
-              </div>
+  <button onClick={handlePrint}>
+    📄 Download / Print PDF
+  </button>
+  <button className="approve-btn" onClick={() => updateStatus(selectedStudent.id, "approved")}>
+    Approve
+  </button>
+  <button className="reject-btn" onClick={() => updateStatus(selectedStudent.id, "rejected")}>
+    Reject
+  </button>
+  <button onClick={() => setSelectedStudent(null)}>Close</button>
+</div>
             </div>
           </div>
         )}
