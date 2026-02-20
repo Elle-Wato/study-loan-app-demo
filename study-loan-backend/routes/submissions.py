@@ -25,61 +25,132 @@ def submit_application():
 
         data = request.get_json()
 
-        # Load existing student.details JSON or empty dict
-        details = student.details or {}
-        if isinstance(details, str):
-            try:
-                details = json.loads(details)
-            except Exception:
-                details = {}
-
-        # Merge/update new submission data into existing details
-        # Monthly submission might contain all or partial keys. Here we merge instead of overwrite
-        # Presuming the frontend sends full application data except for consent form
-        # Also merge consent data separately if sent during the consent step
-        consent_data = {
-            'studentName': data.get('studentName'),
-            'studentDate': data.get('studentDate'),
-            'studentSignature': data.get('studentSignature'),
-            'guardianName': data.get('guardianName'),
-            'guardianDate': data.get('guardianDate'),
-            'guardianSignature': data.get('guardianSignature'),
-            'guarantorName': data.get('guarantorName'),
-            'guarantorDate': data.get('guarantorDate'),
-            'guarantorSignature': data.get('guarantorSignature')
-        }
-
-        # Remove keys not related to consent to merge them separately if any
-        main_data_keys = set(data.keys()) - set(consent_data.keys())
-
-        # Update main application details (merge nested dicts)
-        for key in main_data_keys:
-            details[key] = data[key]
-
-        # Update consent form separately, overwriting consent only
-        details['consentForm'] = consent_data
-
-        # Update student name if missing or different
-        student_name = consent_data.get('studentName') or details.get('personalDetails', {}).get('fullName') or student.name
-        if student_name and student_name != student.name:
-            student.name = student_name
-
-        student.details = details
-
-        # Create new submission record
-        submission = Submission(
+        # ── Check if student already has a locked/submitted application ──
+        existing_submission = Submission.query.filter_by(
             student_id=student.id,
-            submitted_at=datetime.utcnow(),
-            status='pending'
-        )
+            is_locked=True
+        ).first()
 
-        db.session.add(student)
-        db.session.add(submission)
-        db.session.commit()
+        if existing_submission:
+            # Student already has a locked submission
+            # Create a BRAND NEW student profile snapshot for the new application
 
-        return jsonify({'message': 'Application submitted successfully'}), 201
+            # Build fresh details from new data
+            new_details = {}
+            consent_data = build_consent_data(data)
+            main_data_keys = set(data.keys()) - set(consent_data.keys())
+
+            for key in main_data_keys:
+                new_details[key] = data[key]
+
+            new_details['consentForm'] = consent_data
+
+            # Get student name from new data
+            new_student_name = (
+                consent_data.get('studentName') or
+                new_details.get('personalDetails', {}).get('fullName') or
+                student.name
+            )
+
+            # Create a NEW student record for this new application
+            new_student = Student(
+                user_id=user.id,
+                name=new_student_name,
+                details=new_details
+            )
+            db.session.add(new_student)
+            db.session.flush()  # get new_student.id before commit
+
+            # Create new submission linked to new student
+            new_submission = Submission(
+                student_id=new_student.id,
+                submitted_at=datetime.utcnow(),
+                status='pending',
+                is_locked=False
+            )
+            db.session.add(new_submission)
+            db.session.commit()
+
+            return jsonify({
+                'message': 'New application created successfully',
+                'submission_id': new_submission.id
+            }), 201
+
+        else:
+            # ── First time OR student has no locked submission yet ──
+            # Check if student has any pending submission (not yet locked)
+            pending_submission = Submission.query.filter_by(
+                student_id=student.id,
+                is_locked=False
+            ).first()
+
+            # Build details from incoming data
+            details = student.details or {}
+            if isinstance(details, str):
+                try:
+                    details = json.loads(details)
+                except Exception:
+                    details = {}
+
+            consent_data = build_consent_data(data)
+            main_data_keys = set(data.keys()) - set(consent_data.keys())
+
+            for key in main_data_keys:
+                details[key] = data[key]
+
+            details['consentForm'] = consent_data
+
+            # Update student name if changed
+            student_name = (
+                consent_data.get('studentName') or
+                details.get('personalDetails', {}).get('fullName') or
+                student.name
+            )
+            if student_name and student_name != student.name:
+                student.name = student_name
+
+            student.details = details
+            db.session.add(student)
+
+            if pending_submission:
+                # Update existing pending submission
+                pending_submission.submitted_at = datetime.utcnow()
+                pending_submission.status = 'pending'
+                pending_submission.is_locked = True  # Lock it now on submit
+                db.session.add(pending_submission)
+            else:
+                # Create first submission and lock it
+                new_submission = Submission(
+                    student_id=student.id,
+                    submitted_at=datetime.utcnow(),
+                    status='pending',
+                    is_locked=True  # Lock immediately on first submit
+                )
+                db.session.add(new_submission)
+
+            db.session.commit()
+
+            return jsonify({
+                'message': 'Application submitted successfully'
+            }), 201
 
     except Exception as e:
         db.session.rollback()
         print("Submission error:", str(e))
         return jsonify({'error': 'Internal server error'}), 500
+
+
+# ── Helper to extract consent data ──
+def build_consent_data(data):
+    return {
+        'studentName': data.get('studentName'),
+        'studentDate': data.get('studentDate'),
+        'studentSignature': data.get('studentSignature'),
+        'guardianName': data.get('guardianName'),
+        'guardianDate': data.get('guardianDate'),
+        'guardianSignature': data.get('guardianSignature'),
+        'guarantorName': data.get('guarantorName'),
+        'guarantorDate': data.get('guarantorDate'),
+        'guarantorSignature': data.get('guarantorSignature'),
+        'submittedAt': datetime.utcnow().isoformat()
+    }

@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { studentAPI } from "../../api/api";
 import Section from "../../components/Section";
 
-const API_BASE_URL = "http://127.0.0.1:5000";
-
-export default function ParentGuardianSection({ onNext, onBack, formData, updateFormData }) {
+export default function ParentGuardianSection({ onNext, onBack, formData, updateFormData, isLocked }) {
   const [parentGuardian, setParentGuardian] = useState(formData.parentGuardian || {
     parentName: "",
     relationship: "",
@@ -17,71 +15,45 @@ export default function ParentGuardianSection({ onNext, onBack, formData, update
     placeOfWork: "",
   });
 
-  const [documents, setDocuments] = useState({
-    idCopy: null,
-    kraPinCopy: null,
-    passportPhoto: null,
-  });
-
-  const [uploadedUrls, setUploadedUrls] = useState(formData.parentGuardianDocuments ||{
+  const [uploadedUrls, setUploadedUrls] = useState(formData.parentGuardianDocuments || {
     idCopy: "",
     kraPinCopy: "",
     passportPhoto: "",
   });
 
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState({});
 
+  // ── Sync to parent ──
+  useEffect(() => {
+    updateFormData("parentGuardian", parentGuardian);
+  }, [parentGuardian]);
+
+  useEffect(() => {
+    updateFormData("parentGuardianDocuments", uploadedUrls);
+  }, [uploadedUrls]);
 
   const handleChange = (e) => {
+    if (isLocked) return;
     const { name, value } = e.target;
     setParentGuardian({ ...parentGuardian, [name]: value });
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
+    if (isLocked) return;
     const { name, files } = e.target;
-    if (files && files[0]) {
-      setDocuments({ ...documents, [name]: files[0] });
-      uploadFile(name, files[0]);
-    }
-  };
+    if (!files || !files[0]) return;
 
-  const uploadFile = async (fieldName, file) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You must be logged in to upload files.");
-      return;
-    }
-
-    setUploading(true);
-
+    setUploading((prev) => ({ ...prev, [name]: true }));
     try {
       const formDataUpload = new FormData();
-      formDataUpload.append("file", file);
-
-      const res = await axios.post(
-        `${API_BASE_URL}/uploads/upload`,
-        formDataUpload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      const fileUrl = res.data.file_url;
-      setUploadedUrls((prev) => {
-  const updated = { ...prev, [fieldName]: fileUrl };
-  updateFormData("parentGuardianDocuments", updated);
-  return updated;
-});
-
-      console.log(`✅ ${fieldName} uploaded:`, fileUrl);
+      formDataUpload.append("file", files[0]);
+      const res = await studentAPI.uploadFile(formDataUpload);
+      setUploadedUrls((prev) => ({ ...prev, [name]: res.data.file_url }));
     } catch (error) {
-      console.error(`❌ Error uploading ${fieldName}:`, error);
-      alert(`Failed to upload ${fieldName}`);
+      console.error(`❌ Error uploading ${name}:`, error);
+      alert(`Failed to upload ${name}`);
     } finally {
-      setUploading(false);
+      setUploading((prev) => ({ ...prev, [name]: false }));
     }
   };
 
@@ -90,28 +62,11 @@ export default function ParentGuardianSection({ onNext, onBack, formData, update
       alert("Please fill in the required fields.");
       return;
     }
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You must be logged in to save data.");
-      return;
-    }
-
     try {
-      await axios.patch(
-        `${API_BASE_URL}/admin/students/update-details`,
-        {
-          parentGuardian,
-          parentGuardianDocuments: uploadedUrls, // Save document URLs
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      console.log("✅ PARENT/GUARDIAN DATA SAVED");
+      await studentAPI.updateDetails({
+        parentGuardian,
+        parentGuardianDocuments: uploadedUrls,
+      });
       onNext();
     } catch (error) {
       console.error("❌ ERROR:", error);
@@ -119,175 +74,116 @@ export default function ParentGuardianSection({ onNext, onBack, formData, update
     }
   };
 
-  const handleBack = () => {
-    onBack();
+  // ── Styles ──
+  const inputStyle = {
+    background: isLocked ? "#f5f5f5" : "",
+    cursor: isLocked ? "not-allowed" : "text",
+    color: isLocked ? "#888" : "#333",
   };
+
+  const fileInputStyle = {
+    cursor: isLocked ? "not-allowed" : "pointer",
+    opacity: isLocked ? 0.6 : 1,
+  };
+
+  const isUploading = Object.values(uploading).some(Boolean);
 
   return (
     <Section title="B. Parent / Guardian Details" className="parent-section">
+
+      {/* ── LOCKED BANNER ── */}
+      {isLocked && (
+        <div style={{
+          background: "#fff8e1",
+          border: "1px solid #f59e0b",
+          borderRadius: "8px",
+          padding: "14px 20px",
+          marginBottom: "20px",
+          color: "#b45309",
+          fontWeight: "600",
+          fontSize: "14px",
+        }}>
+          🔒 This section is locked and cannot be edited.
+        </div>
+      )}
+
+      {/* ── FORM FIELDS ── */}
       <div className="parent-grid">
-        <input
-          name="parentName"
-          placeholder="👨‍👩‍👧 Full Name of Parent / Guardian"
-          value={parentGuardian.parentName}
-          onChange={handleChange}
-          required
-          className="parent-input"
-        />
-        <input
-          name="relationship"
-          placeholder="👪 Relationship"
-          value={parentGuardian.relationship}
-          onChange={handleChange}
-          className="parent-input"
-        />
-        <input
-          name="idNumber"
-          placeholder="🆔 ID Number"
-          value={parentGuardian.idNumber}
-          onChange={handleChange}
-          className="parent-input"
-        />
-        <input
-          name="kraPin"
-          placeholder="📋 KRA PIN"
-          value={parentGuardian.kraPin}
-          onChange={handleChange}
-          className="parent-input"
-        />
-        <input
-          name="telephone"
-          placeholder="📞 Telephone Number"
-          value={parentGuardian.telephone}
-          onChange={handleChange}
-          className="parent-input"
-        />
-        <input
-          name="numberOfChildren"
-          placeholder="👶 Number of Children"
-          value={parentGuardian.numberOfChildren}
-          onChange={handleChange}
-          className="parent-input"
-        />
-        <input
-          name="residentialAddress"
-          placeholder="🏠 Residential Address"
-          value={parentGuardian.residentialAddress}
-          onChange={handleChange}
-          className="parent-input"
-        />
-        <input
-          type="email"
-          name="emailAddress"
-          placeholder="📧 Email Address"
-          value={parentGuardian.emailAddress}
-          onChange={handleChange}
-          className="parent-input"
-        />
-        <input
-          name="placeOfWork"
-          placeholder="🏢 Place of Work"
-          value={parentGuardian.placeOfWork}
-          onChange={handleChange}
-          className="parent-input"
-        />
+        {[
+          { name: "parentName", placeholder: "👨‍👩‍👧 Full Name of Parent / Guardian", type: "text", required: true },
+          { name: "relationship", placeholder: "👪 Relationship", type: "text" },
+          { name: "idNumber", placeholder: "🆔 ID Number", type: "text" },
+          { name: "kraPin", placeholder: "📋 KRA PIN", type: "text" },
+          { name: "telephone", placeholder: "📞 Telephone Number", type: "tel", required: true },
+          { name: "numberOfChildren", placeholder: "👶 Number of Children", type: "number" },
+          { name: "residentialAddress", placeholder: "🏠 Residential Address", type: "text" },
+          { name: "emailAddress", placeholder: "📧 Email Address", type: "email" },
+          { name: "placeOfWork", placeholder: "🏢 Place of Work", type: "text" },
+        ].map(({ name, placeholder, type }) => (
+          <input
+            key={name}
+            type={type}
+            name={name}
+            placeholder={placeholder}
+            value={parentGuardian[name] || ""}
+            onChange={handleChange}
+            disabled={isLocked}
+            className="parent-input"
+            style={inputStyle}
+          />
+        ))}
       </div>
 
+      {/* ── DOCUMENT UPLOADS ── */}
       <h4 className="parent-subtitle">📎 Required Attachments</h4>
       <div className="parent-grid">
-        <div className="parent-field">
-          <label className="parent-label" htmlFor="idCopy">
-            🆔 Copy of ID
-          </label>
-          <input
-            type="file"
-            id="idCopy"
-            name="idCopy"
-            className="parent-file"
-            onChange={handleFileChange}
-            accept=".pdf,.jpg,.png"
-          />
-          {uploadedUrls.idCopy && (
-  <div style={{ fontSize: "12px", marginTop: "4px" }}>
-    ✅ Uploaded |{" "}
-    <a
-      href={uploadedUrls.idCopy}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      View File
-    </a>
-  </div>
-)}
-</div>
-
-
-        <div className="parent-field">
-          <label className="parent-label" htmlFor="kraPinCopy">
-            📋 Copy of KRA PIN
-          </label>
-          <input
-            type="file"
-            id="kraPinCopy"
-            name="kraPinCopy"
-            className="parent-file"
-            onChange={handleFileChange}
-            accept=".pdf,.jpg,.png"
-          />
-          {uploadedUrls.kraPinCopy && (
-  <div style={{ fontSize: "12px", marginTop: "4px" }}>
-    ✅ Uploaded |{" "}
-    <a
-      href={uploadedUrls.kraPinCopy}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      View File
-    </a>
-  </div>
-          )}
-        </div>
-
-        <div className="parent-field">
-          <label className="parent-label" htmlFor="passportPhoto">
-            📸 Passport Size Photo
-          </label>
-          <input
-            type="file"
-            id="passportPhoto"
-            name="passportPhoto"
-            className="parent-file"
-            onChange={handleFileChange}
-            accept=".jpg,.png"
-          />
-          {uploadedUrls.passportPhoto && (
-  <div style={{ fontSize: "12px", marginTop: "4px" }}>
-    ✅ Uploaded |{" "}
-    <a
-      href={uploadedUrls.passportPhoto}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      View File
-    </a>
-  </div>
-          )}
-        </div>
+        {[
+          { name: "idCopy", label: "🆔 Copy of ID", accept: ".pdf,.jpg,.png" },
+          { name: "kraPinCopy", label: "📋 Copy of KRA PIN", accept: ".pdf,.jpg,.png" },
+          { name: "passportPhoto", label: "📸 Passport Size Photo", accept: ".jpg,.png" },
+        ].map(({ name, label, accept }) => (
+          <div className="parent-field" key={name}>
+            <label className="parent-label">{label}</label>
+            <input
+              type="file"
+              name={name}
+              className="parent-file"
+              onChange={handleFileChange}
+              accept={accept}
+              disabled={isLocked}
+              style={fileInputStyle}
+            />
+            {/* Uploading spinner */}
+            {uploading[name] && (
+              <div style={{ fontSize: "12px", color: "#2d6a9f", marginTop: "4px" }}>
+                ⏳ Uploading...
+              </div>
+            )}
+            {/* Uploaded link */}
+            {uploadedUrls[name] && !uploading[name] && (
+              <div style={{ fontSize: "12px", marginTop: "4px", color: "#27ae60" }}>
+                ✅ Uploaded |{" "}
+                <a href={uploadedUrls[name]} target="_blank" rel="noopener noreferrer"
+                  style={{ color: "#2d6a9f", fontWeight: "600" }}>
+                  View File
+                </a>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
+      {/* ── BUTTONS ── */}
       <div className="parent-buttons">
-        <button
-          onClick={handleBack}
-          className="parent-button parent-button-back"
-        >
+        <button onClick={onBack} className="parent-button parent-button-back">
           ⬅️ Back
         </button>
         <button
           onClick={handleNext}
           className="parent-button parent-button-next"
-          disabled={uploading}
+          disabled={isUploading}
         >
-          {uploading ? "Uploading..." : "➡️ Next"}
+          {isUploading ? "⏳ Uploading..." : "➡️ Next"}
         </button>
       </div>
     </Section>

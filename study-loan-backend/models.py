@@ -18,11 +18,12 @@ class User(db.Model):
     def __repr__(self):
         return f'<User {self.email}>'
 
+
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True, index=True)  # One user per student
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)  # REMOVED unique=True to allow multiple students per user
     name = db.Column(db.String(100))
-    details = db.Column(db.JSON)  # Form data as JSON
+    details = db.Column(db.JSON)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -32,14 +33,16 @@ class Student(db.Model):
     def __repr__(self):
         return f'<Student {self.name}>'
 
+
 class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False, index=True)
-    file_url = db.Column(db.Text, nullable=False)  # Use Text for longer URLs
+    file_url = db.Column(db.Text, nullable=False)
     uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
         return f'<Document {self.file_url}>'
+
 
 class Submission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -47,19 +50,26 @@ class Submission(db.Model):
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     status = db.Column(db.String(20), default='pending', index=True)  # pending, approved, rejected
-    
-    # Add a check constraint for valid statuses (PostgreSQL-specific)
+
+    # ✅ is_locked MUST be inside the class, before __table_args__
+    is_locked = db.Column(db.Boolean, default=False, nullable=False)
+
+    # ✅ __table_args__ must be at the end of the class
     __table_args__ = (
-        db.CheckConstraint(status.in_(['pending', 'approved', 'rejected']), name='valid_status'),
+        db.CheckConstraint(
+            "status IN ('pending', 'approved', 'rejected')",  # use string not column reference
+            name='valid_status'
+        ),
     )
     
     def __repr__(self):
         return f'<Submission {self.status} for Student {self.student_id}>'
 
+
 class Staff(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True, index=True)  # One user per staff
-    admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True)  # Optional link to admin user
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True, index=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):

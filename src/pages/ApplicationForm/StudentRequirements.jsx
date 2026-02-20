@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { studentAPI } from "../../api/api";
 import Section from "../../components/Section";
 import ProgramSelect from "../../components/ProgramSelect";
 
-const API_BASE_URL = "http://127.0.0.1:5000";
+
 
 export default function StudentRequirements({ onNext, formData, updateFormData }) {
   const defaultEducationalQualifications = {
@@ -77,52 +77,25 @@ export default function StudentRequirements({ onNext, formData, updateFormData }
 
   // Upload file helper
   const uploadFile = async (file) => {
-    if (!file) return null;
-    const token = localStorage.getItem("token");
-    const formDataUpload = new FormData();
-    formDataUpload.append("file", file);
-
-    const res = await axios.post(`${API_BASE_URL}/uploads/upload`, formDataUpload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
-      // timeout removed to prevent timeout error
-    });
-    return res.data.file_url;
-  };
+  const formDataUpload = new FormData();
+  formDataUpload.append("file", file);
+  const res = await studentAPI.uploadFile(formDataUpload);
+  return res.data.file_url;
+};
 
   const handleNext = async () => {
   if (!program) {
     alert("Please select a program before proceeding.");
     return;
   }
-
-  const token = localStorage.getItem("token");
-  if (!token) {
-    alert("You must be logged in to save data.");
-    return;
-  }
-
   try {
     const payload = {
       program,
       personalDetails,
       educationalQualifications,
-      documentsUploaded: uploadedUrls, // 👈 use stored URLs
+      documentsUploaded: uploadedUrls,
     };
-
-    await axios.patch(
-      `${API_BASE_URL}/admin/students/update-details`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
+    await studentAPI.updateDetails(payload);
     onNext();
   } catch (error) {
     console.error("Error saving data:", error);
@@ -231,7 +204,7 @@ export default function StudentRequirements({ onNext, formData, updateFormData }
             {uploadedUrls.form4Certificate && (
     <div style={{ marginTop: "5px", fontSize: "14px" }}>
       ✅ Uploaded |
-      <a href={uploadedUrls.cv} target="_blank" rel="noopener noreferrer">
+      <a href={uploadedUrls.form4Certificate} target="_blank" rel="noopener noreferrer">
         View File
       </a>
     </div>

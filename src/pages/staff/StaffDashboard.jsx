@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import logo from "../../assets/logo.png";
+import "./StaffDashboard.css";
 
 const API_BASE_URL = "http://127.0.0.1:5000";
 
@@ -64,6 +65,7 @@ export default function StaffDashboard() {
   };
 
   const handlePrint = () => {
+  // Just use the native print; the CSS above handles the rest
   window.print();
 };
 
@@ -106,7 +108,20 @@ const getStudentInstitution = (student) => {
 };
 
 const getStudentProgram = (student) => {
-  return student.program || "N/A";
+  // 1. Try to get it from the top level (if your API flattened the data)
+  if (student.program) return student.program;
+
+  // 2. Dig into the JSON details (where it usually is based on your setup)
+  // This looks for { "program": "undergraduate" } inside the details blob
+  const programValue = getDetailValue(student.details, ["program"]);
+  
+  if (programValue) {
+    // Optional: Make it look nice (e.g., "undergraduate" -> "Undergraduate")
+    return programValue.charAt(0).toUpperCase() + programValue.slice(1);
+  }
+
+  // 3. Fallback for older data or different form versions
+  return getDetailValue(student.details, ["loanDetails", "studyProgram"]) || "N/A";
 };
 
 const getStudentEmail = (student) => {
@@ -179,15 +194,69 @@ const getStudentEmail = (student) => {
         <p><strong>Status:</strong> {selectedStudent.status?.toUpperCase()}</p>
         <p><strong>Submitted At:</strong> {selectedStudent.submitted_at ? new Date(selectedStudent.submitted_at).toLocaleDateString() : "N/A"}</p>
 
-        <h2>Personal Details</h2>
-        <p><strong>Full Name:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "fullName"]) || "N/A"}</p>
-        <p><strong>Nationality:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "nationality"]) || "N/A"}</p>
-        <p><strong>ID/Passport:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "idPassportNo"]) || "N/A"}</p>
-        <p><strong>Date of Birth:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "dateOfBirth"]) || "N/A"}</p>
-        <p><strong>Marital Status:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "maritalStatus"]) || "N/A"}</p>
-        <p><strong>Telephone:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "telephoneNo"]) || "N/A"}</p>
-        <p><strong>County:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "county"]) || "N/A"}</p>
-        <p><strong>Email:</strong> {getDetailValue(selectedStudent.details, ["personalDetails", "emailAddress"]) || "N/A"}</p>
+       {/* ================= PERSONAL DETAILS ================= */}
+<div className="section">
+  <h2>1. Personal Details</h2>
+
+  <div className="grid-2">
+    <div className="field">
+      <span className="label">Full Name</span>
+      <span className="value">
+        {getDetailValue(selectedStudent.details, ["personalDetails", "fullName"]) || "N/A"}
+      </span>
+    </div>
+
+    <div className="field">
+      <span className="label">Nationality</span>
+      <span className="value">
+        {getDetailValue(selectedStudent.details, ["personalDetails", "nationality"]) || "N/A"}
+      </span>
+    </div>
+
+    <div className="field">
+      <span className="label">ID / Passport Number</span>
+      <span className="value">
+        {getDetailValue(selectedStudent.details, ["personalDetails", "idPassportNo"]) || "N/A"}
+      </span>
+    </div>
+
+    <div className="field">
+      <span className="label">Date of Birth</span>
+      <span className="value">
+        {getDetailValue(selectedStudent.details, ["personalDetails", "dateOfBirth"]) || "N/A"}
+      </span>
+    </div>
+
+    <div className="field">
+      <span className="label">Marital Status</span>
+      <span className="value">
+        {getDetailValue(selectedStudent.details, ["personalDetails", "maritalStatus"]) || "N/A"}
+      </span>
+    </div>
+
+    <div className="field">
+      <span className="label">Telephone Number</span>
+      <span className="value">
+        {getDetailValue(selectedStudent.details, ["personalDetails", "telephoneNo"]) || "N/A"}
+      </span>
+    </div>
+
+    <div className="field">
+      <span className="label">County</span>
+      <span className="value">
+        {getDetailValue(selectedStudent.details, ["personalDetails", "county"]) || "N/A"}
+      </span>
+    </div>
+
+    <div className="field">
+      <span className="label">Email Address</span>
+      <span className="value">
+        {getDetailValue(selectedStudent.details, ["personalDetails", "emailAddress"]) || "N/A"}
+      </span>
+    </div>
+  </div>
+</div>
+
 
         <h2>Educational Qualifications</h2>
         <h3>Primary School</h3>
@@ -355,65 +424,92 @@ const getStudentEmail = (student) => {
 <p><strong>Place of Work:</strong> {getDetailValue(selectedStudent.details, ["referees", "thirdReferee", "placeOfWork"]) || "N/A"}</p>
 
 
-<h2>Budget Planner</h2>
-{getDetailValue(selectedStudent.details, ["budgetDetails"]) ? (
-  <div>
-    <h3>💰 Income</h3>
-    <p><strong>Net Salary:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "netSalary"]) || "N/A"}</p>
-    <p><strong>Business Income:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "businessIncome"]) || "N/A"}</p>
-    <p><strong>Other Income:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "otherIncome"]) || "N/A"}</p>
-    
-    <h3>📊 Expenses</h3>
-    <p><strong>Household Expenses:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "householdExpenses"]) || "N/A"}</p>
-    <p><strong>Rental Expenses:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "rentalExpenses"]) || "N/A"}</p>
-    <p><strong>Transport Expenses:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "transportExpenses"]) || "N/A"}</p>
-    <p><strong>Other Expenses:</strong> KSh {getDetailValue(selectedStudent.details, ["budgetDetails", "otherExpenses"]) || "N/A"}</p>
+{/* ================= BUDGET PLANNER ================= */}
+<div className="section page-break">
+  <h2>2. Budget Planner & Financial Analysis</h2>
 
-    <h3>💵 Summary</h3>
-    <p>
-      <strong>Total Income:</strong> KSh {
-        (parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "netSalary"]) || 0) +
-         parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "businessIncome"]) || 0) +
-         parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherIncome"]) || 0)).toLocaleString()
-      }
-    </p>
-    <p>
-      <strong>Total Expenses:</strong> KSh {
-        (parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "householdExpenses"]) || 0) +
-         parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "rentalExpenses"]) || 0) +
-         parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "transportExpenses"]) || 0) +
-         parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherExpenses"]) || 0)).toLocaleString()
-      }
-    </p>
-    <p>
-  <strong>Net Balance:</strong> 
-  <span style={{ 
-    color: ((parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "netSalary"]) || 0) +
-            parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "businessIncome"]) || 0) +
-            parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherIncome"]) || 0)) -
-           (parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "householdExpenses"]) || 0) +
-            parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "rentalExpenses"]) || 0) +
-            parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "transportExpenses"]) || 0) +
-            parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherExpenses"]) || 0))) < 0 
-      ? 'red' 
-      : 'green',
-    fontWeight: 'bold'
-  }}>
-    KSh {
-      ((parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "netSalary"]) || 0) +
-        parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "businessIncome"]) || 0) +
-        parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherIncome"]) || 0)) -
-       (parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "householdExpenses"]) || 0) +
-        parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "rentalExpenses"]) || 0) +
-        parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "transportExpenses"]) || 0) +
-        parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherExpenses"]) || 0))).toLocaleString()
-    }
-  </span>
-</p>
-  </div>
-) : (
-  <p>No budget details provided.</p>
-)}
+  {(() => {
+    const netSalary = parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "netSalary"]) || 0);
+    const businessIncome = parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "businessIncome"]) || 0);
+    const otherIncome = parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherIncome"]) || 0);
+
+    const householdExpenses = parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "householdExpenses"]) || 0);
+    const rentalExpenses = parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "rentalExpenses"]) || 0);
+    const transportExpenses = parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "transportExpenses"]) || 0);
+    const otherExpenses = parseInt(getDetailValue(selectedStudent.details, ["budgetDetails", "otherExpenses"]) || 0);
+
+    const totalIncome = netSalary + businessIncome + otherIncome;
+    const totalExpenses = householdExpenses + rentalExpenses + transportExpenses + otherExpenses;
+    const netBalance = totalIncome - totalExpenses;
+
+    return (
+      <table className="print-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Amount (KSh)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colSpan="2"><strong>Income</strong></td>
+          </tr>
+          <tr>
+            <td>Net Salary</td>
+            <td>{netSalary.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td>Business Income</td>
+            <td>{businessIncome.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td>Other Income</td>
+            <td>{otherIncome.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td><strong>Total Income</strong></td>
+            <td><strong>{totalIncome.toLocaleString()}</strong></td>
+          </tr>
+
+          <tr>
+            <td colSpan="2"><strong>Expenses</strong></td>
+          </tr>
+          <tr>
+            <td>Household Expenses</td>
+            <td>{householdExpenses.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td>Rental Expenses</td>
+            <td>{rentalExpenses.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td>Transport Expenses</td>
+            <td>{transportExpenses.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td>Other Expenses</td>
+            <td>{otherExpenses.toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td><strong>Total Expenses</strong></td>
+            <td><strong>{totalExpenses.toLocaleString()}</strong></td>
+          </tr>
+
+          <tr>
+            <td><strong>Net Monthly Balance</strong></td>
+            <td style={{ 
+              fontWeight: "bold",
+              color: netBalance < 0 ? "red" : "green"
+            }}>
+              {netBalance.toLocaleString()}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    );
+  })()}
+</div>
+
 
 
 
