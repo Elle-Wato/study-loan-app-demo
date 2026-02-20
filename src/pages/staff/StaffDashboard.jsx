@@ -15,6 +15,9 @@ export default function StaffDashboard() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const printRef = useRef();
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState("all"); // Added this to handle status filtering
+
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -127,6 +130,17 @@ const getStudentProgram = (student) => {
 const getStudentEmail = (student) => {
   return student.email || "N/A";
 };
+
+const filteredStudents = students.filter(s => {
+    // Check Status Filter
+    const matchesStatus = filter === "all" || s.status === filter;
+    
+    // Check Search Term
+    const name = getStudentName(s).toLowerCase();
+    const matchesSearch = name.includes(searchTerm.toLowerCase());
+    
+    return matchesStatus && matchesSearch;
+  });
 
 
   return (
