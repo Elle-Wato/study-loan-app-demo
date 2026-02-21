@@ -1,47 +1,68 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from flask_migrate import Migrate  # New import
+from flask_migrate import Migrate
 from config import Config
 from models import db
+from extensions import mail  # Import the centralized mail object
 from routes.auth import auth_bp
 from routes.admin import admin_bp
 from routes.submissions import submissions_bp
 from routes.uploads import uploads_bp
 from routes.staff import staff_bp
 from datetime import timedelta
-from flask_mail import Mail
 import os
 from dotenv import load_dotenv
 
+# Load environment variables from .env
 load_dotenv()
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Add your cPanel SMTP Settings
+# ── SMTP CONFIGURATION (cPanel) ──
 app.config['MAIL_SERVER'] = 'mail.elimishatrust.or.ke'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = 'applications@elimishatrust.or.ke'
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD') # Pulls it from the hidden file
-app.config['MAIL_DEFAULT_SENDER'] = ('Elimisha Trust', 'applications@elimishatrust.or.ke')
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_SSL'] = False  # Explicitly False when using TLS on 587
+app.config['MAIL_USE_TLS'] = True  
+app.config['MAIL_USERNAME'] = 'wato@elimishatrust.or.ke'
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = ('Elimisha Trust', 'wato@elimishatrust.or.ke')
 
-# Initialize Mail
-mail = Mail(app)
+print("--- MAIL DEBUG ---")
+print(f"Server: {app.config['MAIL_SERVER']}")
+print(f"User: {app.config['MAIL_USERNAME']}")
+print(f"Pass Length: {len(app.config['MAIL_PASSWORD']) if app.config['MAIL_PASSWORD'] else 'NONE'}")
+print("------------------")
 
+# ── INITIALIZE EXTENSIONS ──
+# We use init_app to prevent circular imports with Blueprints
+mail.init_app(app) 
+db.init_app(app)
+migrate = Migrate(app, db)
 jwt = JWTManager(app)
+
+# ── JWT CONFIGURATION ──
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=30) 
 
-CORS(app, origins=['http://127.0.0.1:5173', 'http://localhost:3000', app.config.get('FRONTEND_URL', 'http://localhost:3000')])
-db.init_app(app)
-migrate = Migrate(app, db)  # New line: Initialize Flask-Migrate
+# ── CORS CONFIGURATION ──
+CORS(app, origins=[
+    'http://127.0.0.1:5173', 
+    'http://localhost:3000', 
+    app.config.get('FRONTEND_URL', 'http://localhost:3000')
+])
 
+# ── REGISTER BLUEPRINTS ──
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(submissions_bp, url_prefix='/submissions')
 app.register_blueprint(uploads_bp, url_prefix='/uploads')
 app.register_blueprint(staff_bp, url_prefix='/staff')
+
+# ── HEALTH CHECK ROUTE (Optional: To test if the server is up) ──
+@app.route('/')
+def index():
+    return {"status": "Elimisha Trust API is running"}, 200
 
 if __name__ == '__main__':
     app.run(debug=True)

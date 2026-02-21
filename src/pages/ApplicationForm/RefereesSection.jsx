@@ -5,25 +5,17 @@ import Section from "../../components/Section";
 const API_BASE_URL = "http://127.0.0.1:5000";
 
 export default function RefereesSection({ onNext, onBack, formData, updateFormData }) {
-  const [referees, setReferees] = useState(formData.referees || {
-    firstReferee: {
-      name: "",
-      contacts: "",
-      email: "",
-      placeOfWork: ""
-    },
-    secondReferee: {
-      name: "",
-      contacts: "",
-      email: "",
-      placeOfWork: ""
-    },
-    thirdReferee: {
-      name: "",
-      contacts: "",
-      email: "",
-      placeOfWork: ""
-    }
+  // 1. Define the structure
+  const defaultReferees = {
+    firstReferee: { name: "", contacts: "", email: "", placeOfWork: "" },
+    secondReferee: { name: "", contacts: "", email: "", placeOfWork: "" },
+    thirdReferee: { name: "", contacts: "", email: "", placeOfWork: "" }
+  };
+
+  // 2. INITIALIZE STATE (This was missing!)
+  const [referees, setReferees] = useState({
+    ...defaultReferees,
+    ...formData.referees // This pulls in existing data if it exists
   });
 
   useEffect(() => {

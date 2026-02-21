@@ -195,40 +195,134 @@ export default function GuarantorSection({ onNext, onBack, formData, updateFormD
         <div key={index} className="guar-guarantor">
           <h4>Guarantor {index + 1}</h4>
 
-          {/* GUARANTOR DETAILS */}
+          {/* 1.0 PERSONAL DETAILS [cite: 93] */}
           <div className="guar-section">
-            <h5>1.0 GUARANTOR DETAILS</h5>
+            <h5 style={{ borderBottom: '1px solid #ddd' }}>1.0 PERSONAL DETAILS</h5>
             <div className="guar-grid">
               <div className="guar-field">
                 <label className="guar-label">Full Name:</label>
-                <input
-                  type="text"
-                  value={guarantor.fullName}
-                  onChange={(e) => handleChange(index, "fullName", e.target.value)}
-                  className="guar-input"
-                  required
-                />
+                <input type="text" value={guarantor.fullName} onChange={(e) => handleChange(index, "fullName", e.target.value)} className="guar-input" />
               </div>
-              {/* Other fields similarly */}
-              {/* ... */}
+              <div className="guar-field">
+                <label className="guar-label">ID Number:</label>
+                <input type="text" value={guarantor.idNumber} onChange={(e) => handleChange(index, "idNumber", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Phone Number:</label>
+                <input type="text" value={guarantor.phoneNumber} onChange={(e) => handleChange(index, "phoneNumber", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Email Address:</label>
+                <input type="email" value={guarantor.emailAddress} onChange={(e) => handleChange(index, "emailAddress", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Marital Status:</label>
+                <select value={guarantor.maritalStatus} onChange={(e) => handleChange(index, "maritalStatus", e.target.value)} className="guar-input">
+                  <option value="">Select Status</option>
+                  <option value="single">Single</option>
+                  <option value="married">Married</option>
+                  <option value="divorced">Divorced</option>
+                </select>
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">No. of Children:</label>
+                <input type="number" value={guarantor.noOfChildren} onChange={(e) => handleChange(index, "noOfChildren", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Permanent Address:</label>
+                <input type="text" value={guarantor.permanentAddress} onChange={(e) => handleChange(index, "permanentAddress", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Physical Address:</label>
+                <input type="text" value={guarantor.physicalAddress} onChange={(e) => handleChange(index, "physicalAddress", e.target.value)} className="guar-input" />
+              </div>
             </div>
           </div>
 
-          {/* LOAN DETAILS */}
+          {/* 2.0 EMPLOYMENT & INCOME [cite: 97] */}
           <div className="guar-section">
-            <h5>2.0 LOAN DETAILS</h5>
+            <h5 style={{ borderBottom: '1px solid #ddd' }}>2.0 EMPLOYMENT DETAILS</h5>
             <div className="guar-grid">
-              {/* Loan details fields */}
-              {/* ... */}
+              <div className="guar-field">
+                <label className="guar-label">Place of Work:</label>
+                <input type="text" value={guarantor.placeOfWork} onChange={(e) => handleChange(index, "placeOfWork", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Position Held:</label>
+                <input type="text" value={guarantor.positionHeld} onChange={(e) => handleChange(index, "positionHeld", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Net Salary (KSh):</label>
+                <input type="number" value={guarantor.netSalary} onChange={(e) => handleChange(index, "netSalary", e.target.value)} className="guar-input" />
+              </div>
             </div>
           </div>
 
-          {/* REFEREES */}
+          {/* 3.0 LOAN DETAILS [cite: 98, 103, 105, 107] */}
           <div className="guar-section">
-            <h5>Referees</h5>
+            <h5 style={{ borderBottom: '1px solid #ddd' }}>3.0 LOAN GUARANTEE DETAILS</h5>
             <div className="guar-grid">
-              {/* Referee fields */}
-              {/* ... */}
+              <div className="guar-field">
+                <label className="guar-label">Applicant Name:</label>
+                <input type="text" value={guarantor.applicantName} onChange={(e) => handleChange(index, "applicantName", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Applicant ID:</label>
+                <input type="text" value={guarantor.applicantId} onChange={(e) => handleChange(index, "applicantId", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Amount Guaranteed (KSh):</label>
+                <input type="number" value={guarantor.loanAmount} onChange={(e) => handleChange(index, "loanAmount", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Relationship with Borrower:</label>
+                <input type="text" value={guarantor.relationship} onChange={(e) => handleChange(index, "relationship", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Other Guarantees?</label>
+                <select value={guarantor.otherGuarantee} onChange={(e) => handleChange(index, "otherGuarantee", e.target.value)} className="guar-input">
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Current Loan?</label>
+                <select value={guarantor.currentLoan} onChange={(e) => handleChange(index, "currentLoan", e.target.value)} className="guar-input">
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* 4.0 REFEREES  */}
+          <div className="guar-section">
+            <h5 style={{ borderBottom: '1px solid #ddd' }}>4.0 GUARANTOR REFEREES</h5>
+            <div className="guar-grid">
+              <div className="guar-field">
+                <label className="guar-label">Referee 1 Name:</label>
+                <input type="text" value={guarantor.referee1Name} onChange={(e) => handleChange(index, "referee1Name", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Referee 1 Phone:</label>
+                <input type="text" value={guarantor.referee1Phone} onChange={(e) => handleChange(index, "referee1Phone", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Referee 1 Email:</label>
+                <input type="email" value={guarantor.referee1Email} onChange={(e) => handleChange(index, "referee1Email", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Referee 2 Name:</label>
+                <input type="text" value={guarantor.referee2Name} onChange={(e) => handleChange(index, "referee2Name", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Referee 2 Phone:</label>
+                <input type="text" value={guarantor.referee2Phone} onChange={(e) => handleChange(index, "referee2Phone", e.target.value)} className="guar-input" />
+              </div>
+              <div className="guar-field">
+                <label className="guar-label">Referee 2 Email:</label>
+                <input type="email" value={guarantor.referee2Email} onChange={(e) => handleChange(index, "referee2Email", e.target.value)} className="guar-input" />
+              </div>
             </div>
           </div>
 

@@ -7,6 +7,7 @@ const API_BASE_URL = "http://127.0.0.1:5000";
 
 const ConsentPage = ({ onBack, formData, updateFormData }) => {
   const navigate = useNavigate();
+  
   // Initialize local state from formData.consentForm or defaults
   const [formDataLocal, setFormDataLocal] = useState({
     studentName: formData.consentForm?.studentName || "",
@@ -23,11 +24,24 @@ const ConsentPage = ({ onBack, formData, updateFormData }) => {
   const studentSigPad = useRef(null);
   const guardianSigPad = useRef(null);
 
+  // Function to handle canvas resizing (prevents signature distortion)
+  const resizeCanvas = () => {
+    [studentCanvasRef, guardianCanvasRef].forEach((ref) => {
+      const canvas = ref.current;
+      if (canvas) { // Check added to prevent the null scale error
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        const ctx = canvas.getContext("2d"); // Fixed character error from "鏡" to "2d"
+        if (ctx) ctx.scale(ratio, ratio);
+      }
+    });
+  };
+
   // Initialize signature pads on mount
   useEffect(() => {
     if (studentCanvasRef.current) {
       studentSigPad.current = new SignaturePad(studentCanvasRef.current);
-      // If signature image exists in formData, load it as initial image
       if (formData.consentForm?.studentSignature) {
         studentSigPad.current.fromDataURL(formData.consentForm.studentSignature);
       }
@@ -38,20 +52,22 @@ const ConsentPage = ({ onBack, formData, updateFormData }) => {
         guardianSigPad.current.fromDataURL(formData.consentForm.guardianSignature);
       }
     }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
     return () => {
       studentSigPad.current?.off();
       guardianSigPad.current?.off();
+      window.removeEventListener("resize", resizeCanvas);
     };
-  }, [formData.consentForm]);
+  }, []); 
 
-  // Sync local form inputs with formData in parent on changes
+  // Sync local form inputs with parent state
   useEffect(() => {
     updateFormData("consentForm", {
       ...formData.consentForm,
-      studentName: formDataLocal.studentName,
-      studentDate: formDataLocal.studentDate,
-      guardianName: formDataLocal.guardianName,
-      guardianDate: formDataLocal.guardianDate,
+      ...formDataLocal,
     });
   }, [formDataLocal]);
 
@@ -79,14 +95,10 @@ const ConsentPage = ({ onBack, formData, updateFormData }) => {
       return;
     }
 
-    // Compose the full consent form data to save, merging with any existing consentForm
     const consentData = {
       ...formData.consentForm,
-      studentName: formDataLocal.studentName,
-      studentDate: formDataLocal.studentDate,
+      ...formDataLocal,
       studentSignature,
-      guardianName: formDataLocal.guardianName,
-      guardianDate: formDataLocal.guardianDate,
       guardianSignature,
       submittedAt: new Date().toISOString(),
     };
@@ -99,7 +111,7 @@ const ConsentPage = ({ onBack, formData, updateFormData }) => {
 
     setSubmitting(true);
     try {
-      // Save consent form data to backend
+      // 1. Save final details
       await axios.patch(
         `${API_BASE_URL}/admin/students/update-details`,
         { consentForm: consentData },
@@ -110,12 +122,11 @@ const ConsentPage = ({ onBack, formData, updateFormData }) => {
           },
         }
       );
-      console.log("✅ Consent form saved");
 
-      // Submit application
-      const response = await axios.post(
+      // 2. Final Submission
+      await axios.post(
         `${API_BASE_URL}/submissions/submit`,
-        {},
+        { ...formData, ...formDataLocal, studentSignature, guardianSignature }, 
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -124,8 +135,8 @@ const ConsentPage = ({ onBack, formData, updateFormData }) => {
         }
       );
 
-      console.log("✅ Application submitted:", response.data);
       alert("Application submitted successfully!");
+      localStorage.removeItem("currentStep");
       navigate("/success");
     } catch (error) {
       console.error("❌ Submission error:", error.response?.data || error);
@@ -135,20 +146,16 @@ const ConsentPage = ({ onBack, formData, updateFormData }) => {
     }
   };
 
-  const handleBack = () => {
-    if (onBack) onBack();
-  };
-
   return (
     <div className="consent-bg">
       <div className="consent-container">
         <h1 className="consent-title">Consent Form for Loan Application</h1>
         <p className="consent-intro">
-          I (We) consent to the collection, processing, transmission, and storage by the Trust in any form whatsoever, of any data of a professional or personal nature that have been provided by the applicant as stipulated in page one of the requirements which is necessary for the purposes of the loan application.
+          I (We) consent to the collection, processing, transmission and storage by the Trust in any form whatsoever, of any data of a professional or personal nature that have been provided by the applicant as stipulated in page one of the requirements which is necessary for the purposes of the loan application.
         </p>
 
         <form onSubmit={handleSubmit} className="consent-form">
-
+          {/* Student Section */}
           <div className="consent-section">
             <h2>Student Consent</h2>
             <div className="form-group">
@@ -159,39 +166,25 @@ const ConsentPage = ({ onBack, formData, updateFormData }) => {
                 value={formDataLocal.studentName}
                 onChange={handleInputChange}
                 required
-                placeholder="Enter full name"
               />
             </div>
             <div className="form-group">
               <label>Signature:</label>
               <div className="signature-container">
-                <canvas
-                  ref={studentCanvasRef}
-                  className="signature-canvas"
-                  width={400}
-                  height={200}
-                />
-                <button
-                  type="button"
-                  onClick={() => clearSignature(studentSigPad)}
-                  className="clear-btn"
-                >
+                {/* Added touch-action: none for mobile support */}
+                <canvas ref={studentCanvasRef} className="signature-canvas" style={{ touchAction: 'none' }} />
+                <button type="button" onClick={() => clearSignature(studentSigPad)} className="clear-btn">
                   Clear
                 </button>
               </div>
             </div>
             <div className="form-group">
               <label>Date:</label>
-              <input
-                type="date"
-                name="studentDate"
-                value={formDataLocal.studentDate}
-                onChange={handleInputChange}
-                required
-              />
+              <input type="date" name="studentDate" value={formDataLocal.studentDate} onChange={handleInputChange} required />
             </div>
           </div>
 
+          {/* Guardian Section */}
           <div className="consent-section">
             <h2>Guardian Consent</h2>
             <div className="form-group">
@@ -202,53 +195,29 @@ const ConsentPage = ({ onBack, formData, updateFormData }) => {
                 value={formDataLocal.guardianName}
                 onChange={handleInputChange}
                 required
-                placeholder="Enter full name"
               />
             </div>
             <div className="form-group">
               <label>Signature:</label>
               <div className="signature-container">
-                <canvas
-                  ref={guardianCanvasRef}
-                  className="signature-canvas"
-                  width={400}
-                  height={200}
-                />
-                <button
-                  type="button"
-                  onClick={() => clearSignature(guardianSigPad)}
-                  className="clear-btn"
-                >
+                {/* Added touch-action: none for mobile support */}
+                <canvas ref={guardianCanvasRef} className="signature-canvas" style={{ touchAction: 'none' }} />
+                <button type="button" onClick={() => clearSignature(guardianSigPad)} className="clear-btn">
                   Clear
                 </button>
               </div>
             </div>
             <div className="form-group">
               <label>Date:</label>
-              <input
-                type="date"
-                name="guardianDate"
-                value={formDataLocal.guardianDate}
-                onChange={handleInputChange}
-                required
-              />
+              <input type="date" name="guardianDate" value={formDataLocal.guardianDate} onChange={handleInputChange} required />
             </div>
           </div>
 
           <div className="consent-buttons">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="consent-button consent-button-back"
-              disabled={submitting}
-            >
+            <button type="button" onClick={onBack} className="consent-button consent-button-back" disabled={submitting}>
               ⬅️ Back
             </button>
-            <button
-              type="submit"
-              className="consent-button consent-button-submit"
-              disabled={submitting}
-            >
+            <button type="submit" className="consent-button consent-button-submit" disabled={submitting}>
               {submitting ? "Submitting..." : "✅ Submit Application"}
             </button>
           </div>

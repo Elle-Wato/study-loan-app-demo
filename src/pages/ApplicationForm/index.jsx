@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { studentAPI } from "../../api/api"; // ✅ replace axios
+import { studentAPI } from "../../api/api";
 import StudentRequirements from "./StudentRequirements";
 import ParentGuardianSection from "./ParentGuardianSection";
 import EmploymentSection from "./EmploymentSection";
@@ -13,7 +13,12 @@ import ConsentPage from "./ConsentPage";
 import SiblingsSection from "./SiblingsSection";
 
 export default function ApplicationForm() {
-  const [step, setStep] = useState(1);
+  // 1. Initialize step from localStorage so refreshes don't reset to Step 1
+  const [step, setStep] = useState(() => {
+    const savedStep = localStorage.getItem("currentStep");
+    return savedStep ? parseInt(savedStep, 10) : 1;
+  });
+
   const [isLocked, setIsLocked] = useState(false);
   const [lockChecked, setLockChecked] = useState(false);
 
@@ -37,14 +42,37 @@ export default function ApplicationForm() {
     student: {},
   });
 
-  // ── Check lock status on mount ──
+  // 2. Persist step change to localStorage
+  useEffect(() => {
+    localStorage.setItem("currentStep", step);
+  }, [step]);
+
+  // 3. Check lock status and "Hydrate" (Auto-Resume) logic
   useEffect(() => {
     const checkLockStatus = async () => {
       try {
-        const res = await studentAPI.checkSubmissionStatus(); // ✅ no token needed
-        setIsLocked(res.data.is_locked || false);
-        if (res.data.is_locked && res.data.details) {
-          setFormData(prev => ({ ...prev, ...res.data.details }));
+        const res = await studentAPI.checkSubmissionStatus();
+        const data = res.data;
+
+        setIsLocked(data.is_locked || false);
+
+        if (data.details) {
+          setFormData((prev) => ({ ...prev, ...data.details }));
+
+          // --- AUTO-RESUME LOGIC ---
+          // If the user hasn't manually moved past step 1, 
+          // we jump them to the last saved section found in the DB.
+          const currentSavedStep = localStorage.getItem("currentStep");
+          
+          if (!currentSavedStep || currentSavedStep === "1") {
+            if (data.details.referees && Object.keys(data.details.referees).length > 0) {
+              setStep(7); // Move to Budget if Referees exist
+            } else if (data.details.loanDetails && Object.keys(data.details.loanDetails).length > 0) {
+              setStep(6); // Move to Referees if Loan exists
+            } else if (data.details.employmentDetails && Object.keys(data.details.employmentDetails).length > 0) {
+              setStep(4); // Example: Move to Financial
+            }
+          }
         }
       } catch (err) {
         console.error("Could not check lock status:", err);
@@ -56,11 +84,11 @@ export default function ApplicationForm() {
   }, []);
 
   const updateFormData = (section, data) => {
-    setFormData(prev => ({ ...prev, [section]: data }));
+    setFormData((prev) => ({ ...prev, [section]: data }));
   };
 
-  const nextStep = () => setStep(prev => Math.min(prev + 1, 11));
-  const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
+  const nextStep = () => setStep((prev) => Math.min(prev + 1, 11));
+  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
   const sharedProps = {
     formData,
@@ -104,10 +132,10 @@ export default function ApplicationForm() {
         }}>
           🔒 Your previous application is locked and cannot be edited.
           You may view your submitted data below.
-          A new application will be created when you submit again.
         </div>
       )}
 
+      {/* Steps mapping based on your shared logic */}
       {step === 1 && <StudentRequirements {...sharedProps} />}
       {step === 2 && <ParentGuardianSection {...sharedProps} />}
       {step === 3 && <EmploymentSection {...sharedProps} />}

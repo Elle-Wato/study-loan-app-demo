@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_mail import Message
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, User, Student, Submission
+from extensions import mail # Import from extensions, not app.py
 from datetime import datetime
 import json
 
@@ -24,16 +25,10 @@ def build_consent_data(data):
 
 # ── Helper to send the email ──
 def send_notification_email(student_name, program):
-    # Using current_app.extensions is safer for Blueprints
-    mail = current_app.extensions.get('mail')
-    if not mail:
-        print("Mail extension not found in current_app")
-        return
-
     try:
         msg = Message(
             subject=f"🚀 New Application: {student_name}",
-            recipients=["applications@elimishatrust.or.ke"],
+            recipients=["wato@elimishatrust.or.ke"],
             body=f"""
 Hello Team,
 
@@ -49,9 +44,11 @@ Submitted At: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
 Please log in to the Staff Dashboard to review the full details.
             """
         )
+        # Use the mail object directly imported from extensions
         mail.send(msg)
+        print(f"✅ Notification email sent for {student_name}")
     except Exception as e:
-        print(f"Mail Notification Error: {str(e)}")
+        print(f"❌ Mail Notification Error: {str(e)}")
 
 @submissions_bp.route('/submit', methods=['POST'])
 @jwt_required()
@@ -60,17 +57,14 @@ def submit_application():
         user_email = get_jwt_identity()
         user = User.query.filter_by(email=user_email).first()
 
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
-
-        if user.role != 'student':
+        if not user or user.role != 'student':
             return jsonify({'error': 'Unauthorized'}), 403
 
         student = Student.query.filter_by(user_id=user.id).first()
         if not student:
             return jsonify({'error': 'Student profile not found'}), 404
 
-        data = request.get_json()
+        data = request.get_json() or {}
         program_name = data.get('program', 'N/A')
 
         # ── Check if student already has a locked/submitted application ──
@@ -81,16 +75,12 @@ def submit_application():
 
         if existing_submission:
             # Build fresh details for new application
-            new_details = {}
             consent_data = build_consent_data(data)
-            main_data_keys = set(data.keys()) - set(consent_data.keys())
-
-            for key in main_data_keys:
-                new_details[key] = data[key]
-
+            new_details = {k: v for k, v in data.items() if k not in consent_data}
             new_details['consentForm'] = consent_data
 
-            new_student_name = (
+            # Student name logic moved INSIDE here where 'data' is defined
+            current_student_name = (
                 consent_data.get('studentName') or
                 new_details.get('personalDetails', {}).get('fullName') or
                 student.name
@@ -98,7 +88,7 @@ def submit_application():
 
             new_student = Student(
                 user_id=user.id,
-                name=new_student_name,
+                name=current_student_name,
                 details=new_details
             )
             db.session.add(new_student)
@@ -108,13 +98,12 @@ def submit_application():
                 student_id=new_student.id,
                 submitted_at=datetime.utcnow(),
                 status='pending',
-                is_locked=True # Locked on submit
+                is_locked=True
             )
             db.session.add(new_submission)
             db.session.commit()
 
-            # Trigger Notification
-            send_notification_email(new_student_name, program_name)
+            send_notification_email(current_student_name, program_name)
 
             return jsonify({
                 'message': 'New application created successfully',
@@ -134,20 +123,19 @@ def submit_application():
                 except: details = {}
 
             consent_data = build_consent_data(data)
-            main_data_keys = set(data.keys()) - set(consent_data.keys())
-
-            for key in main_data_keys:
+            for key in (set(data.keys()) - set(consent_data.keys())):
                 details[key] = data[key]
 
             details['consentForm'] = consent_data
 
-            student_name = (
+            current_student_name = (
                 consent_data.get('studentName') or
                 details.get('personalDetails', {}).get('fullName') or
                 student.name
             )
-            if student_name and student_name != student.name:
-                student.name = student_name
+            
+            if current_student_name and current_student_name != student.name:
+                student.name = current_student_name
 
             student.details = details
             db.session.add(student)
@@ -168,8 +156,7 @@ def submit_application():
 
             db.session.commit()
 
-            # Trigger Notification
-            send_notification_email(student_name, program_name)
+            send_notification_email(current_student_name, program_name)
 
             return jsonify({'message': 'Application submitted successfully'}), 201
 
