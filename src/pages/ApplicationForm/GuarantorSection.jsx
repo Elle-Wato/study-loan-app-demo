@@ -338,11 +338,7 @@ export default function GuarantorSection({ onNext, onBack, formData, updateFormD
                   accept=".pdf,.jpg,.png"
                   className="guar-file"
                 />
-                {guarantor.consentFile && (
-                  <p style={{ color: "green", fontSize: "12px" }}>
-                    ✅ Selected: {guarantor.consentFile.name}
-                  </p>
-                )}
+                {guarantor.consentFileUrl && <p style={{ color: "green", fontSize: "11px" }}>✅ Saved | <a href={guarantor.consentFileUrl} target="_blank" rel="noreferrer" style={{textDecoration: 'underline'}}>View Current</a></p>}
               </div>
               <div className="guar-field">
                 <label className="guar-label">🆔 ID Document (PDF/Image):</label>
@@ -352,11 +348,7 @@ export default function GuarantorSection({ onNext, onBack, formData, updateFormD
                   accept=".pdf,.jpg,.png"
                   className="guar-file"
                 />
-                {guarantor.idFile && (
-                  <p style={{ color: "green", fontSize: "12px" }}>
-                    ✅ Selected: {guarantor.idFile.name}
-                  </p>
-                )}
+                {guarantor.idFileUrl && <p style={{ color: "green", fontSize: "11px" }}>✅ Saved | <a href={guarantor.idFileUrl} target="_blank" rel="noreferrer" style={{textDecoration: 'underline'}}>View Current</a></p>}
               </div>
               <div className="guar-field">
                 <label className="guar-label">📸 Passport Photo (Image):</label>
@@ -366,11 +358,7 @@ export default function GuarantorSection({ onNext, onBack, formData, updateFormD
                   accept=".jpg,.png"
                   className="guar-file"
                 />
-                {guarantor.photoFile && (
-                  <p style={{ color: "green", fontSize: "12px" }}>
-                    ✅ Selected: {guarantor.photoFile.name}
-                  </p>
-                )}
+                {guarantor.photoFileUrl && <p style={{ color: "green", fontSize: "11px" }}>✅ Saved | <a href={guarantor.photoFileUrl} target="_blank" rel="noreferrer" style={{textDecoration: 'underline'}}>View Current</a></p>}
               </div>
             </div>
           </div>

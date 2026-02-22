@@ -12,11 +12,13 @@ export default function RefereesSection({ onNext, onBack, formData, updateFormDa
     thirdReferee: { name: "", contacts: "", email: "", placeOfWork: "" }
   };
 
-  // 2. INITIALIZE STATE (This was missing!)
+  // 2. Initialize State with cloud/form data
   const [referees, setReferees] = useState({
     ...defaultReferees,
-    ...formData.referees // This pulls in existing data if it exists
+    ...formData.referees 
   });
+
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     updateFormData("referees", referees);
@@ -39,6 +41,31 @@ export default function RefereesSection({ onNext, onBack, formData, updateFormDa
       return;
     }
 
+    // --- Validation Requirements ---
+    const refereeKeys = [
+      { key: "firstReferee", label: "1st Referee (Spouse)" },
+      { key: "secondReferee", label: "2nd Referee (Colleague)" },
+      { key: "thirdReferee", label: "3rd Referee (Other)" }
+    ];
+
+    const fields = [
+      { id: "name", label: "Name" },
+      { id: "contacts", label: "Contacts" },
+      { id: "email", label: "Email Address" },
+      { id: "placeOfWork", label: "Place of Work" }
+    ];
+
+    for (let ref of refereeKeys) {
+      for (let field of fields) {
+        if (!referees[ref.key][field.id] || referees[ref.key][field.id].trim() === "") {
+          alert(`Required: Please provide the ${field.label} for ${ref.label}.`);
+          return;
+        }
+      }
+    }
+
+    setSaving(true);
+
     try {
       await axios.patch(
         `${API_BASE_URL}/admin/students/update-details`,
@@ -56,6 +83,8 @@ export default function RefereesSection({ onNext, onBack, formData, updateFormDa
     } catch (error) {
       console.error("❌ ERROR SAVING REFEREES:", error.response?.data || error);
       alert("Failed to save data. Please try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -69,26 +98,26 @@ export default function RefereesSection({ onNext, onBack, formData, updateFormDa
         <h4 className="ref-heading">👫 1st Referee (Spouse)</h4>
         <div className="ref-grid">
           <input
-            placeholder="👤 Name"
+            placeholder="👤 Name *"
             className="ref-input"
             value={referees.firstReferee.name}
             onChange={(e) => handleChange("firstReferee", "name", e.target.value)}
           />
           <input
-            placeholder="📞 Contacts"
+            placeholder="📞 Contacts *"
             className="ref-input"
             value={referees.firstReferee.contacts}
             onChange={(e) => handleChange("firstReferee", "contacts", e.target.value)}
           />
           <input
             type="email"
-            placeholder="📧 Email Address"
+            placeholder="📧 Email Address *"
             className="ref-input"
             value={referees.firstReferee.email}
             onChange={(e) => handleChange("firstReferee", "email", e.target.value)}
           />
           <input
-            placeholder="🏢 Place of Work"
+            placeholder="🏢 Place of Work *"
             className="ref-input"
             value={referees.firstReferee.placeOfWork}
             onChange={(e) => handleChange("firstReferee", "placeOfWork", e.target.value)}
@@ -100,26 +129,26 @@ export default function RefereesSection({ onNext, onBack, formData, updateFormDa
         <h4 className="ref-heading">👔 2nd Referee (Colleague / Business)</h4>
         <div className="ref-grid">
           <input
-            placeholder="👤 Name"
+            placeholder="👤 Name *"
             className="ref-input"
             value={referees.secondReferee.name}
             onChange={(e) => handleChange("secondReferee", "name", e.target.value)}
           />
           <input
-            placeholder="📞 Contacts"
+            placeholder="📞 Contacts *"
             className="ref-input"
             value={referees.secondReferee.contacts}
             onChange={(e) => handleChange("secondReferee", "contacts", e.target.value)}
           />
           <input
             type="email"
-            placeholder="📧 Email Address"
+            placeholder="📧 Email Address *"
             className="ref-input"
             value={referees.secondReferee.email}
             onChange={(e) => handleChange("secondReferee", "email", e.target.value)}
           />
           <input
-            placeholder="🏢 Place of Work"
+            placeholder="🏢 Place of Work *"
             className="ref-input"
             value={referees.secondReferee.placeOfWork}
             onChange={(e) => handleChange("secondReferee", "placeOfWork", e.target.value)}
@@ -131,26 +160,26 @@ export default function RefereesSection({ onNext, onBack, formData, updateFormDa
         <h4 className="ref-heading">👥 3rd Referee (Other)</h4>
         <div className="ref-grid">
           <input
-            placeholder="👤 Name"
+            placeholder="👤 Name *"
             className="ref-input"
             value={referees.thirdReferee.name}
             onChange={(e) => handleChange("thirdReferee", "name", e.target.value)}
           />
           <input
-            placeholder="📞 Contacts"
+            placeholder="📞 Contacts *"
             className="ref-input"
             value={referees.thirdReferee.contacts}
             onChange={(e) => handleChange("thirdReferee", "contacts", e.target.value)}
           />
           <input
             type="email"
-            placeholder="📧 Email Address"
+            placeholder="📧 Email Address *"
             className="ref-input"
             value={referees.thirdReferee.email}
             onChange={(e) => handleChange("thirdReferee", "email", e.target.value)}
           />
           <input
-            placeholder="🏢 Place of Work"
+            placeholder="🏢 Place of Work *"
             className="ref-input"
             value={referees.thirdReferee.placeOfWork}
             onChange={(e) => handleChange("thirdReferee", "placeOfWork", e.target.value)}
@@ -162,14 +191,16 @@ export default function RefereesSection({ onNext, onBack, formData, updateFormDa
         <button
           onClick={handleBack}
           className="ref-button ref-button-back"
+          disabled={saving}
         >
           ⬅️ Back
         </button>
         <button
           onClick={handleNext}
           className="ref-button ref-button-next"
+          disabled={saving}
         >
-          ➡️ Next
+          {saving ? "Saving..." : "➡️ Next"}
         </button>
       </div>
     </Section>

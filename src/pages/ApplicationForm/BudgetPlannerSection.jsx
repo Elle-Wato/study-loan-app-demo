@@ -15,6 +15,8 @@ export default function BudgetPlannerSection({ onNext, onBack, formData, updateF
     otherExpenses: ""
   });
 
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     updateFormData("budgetDetails", budgetDetails);
   }, [budgetDetails]);
@@ -30,6 +32,29 @@ export default function BudgetPlannerSection({ onNext, onBack, formData, updateF
       alert("You must be logged in to save data.");
       return;
     }
+
+    // --- Validation Requirements ---
+    // 1. Ensure at least one income source is provided
+    if (!budgetDetails.netSalary && !budgetDetails.businessIncome && !budgetDetails.otherIncome) {
+      alert("Required: Please provide at least one source of income (Salary, Business, or Other).");
+      return;
+    }
+
+    // 2. Ensure core expenses are provided
+    if (!budgetDetails.householdExpenses) {
+      alert("Required: Please provide your Household Expenses.");
+      return;
+    }
+    if (!budgetDetails.rentalExpenses) {
+      alert("Required: Please provide your Rental Expenses (Enter 0 if not applicable).");
+      return;
+    }
+    if (!budgetDetails.transportExpenses) {
+      alert("Required: Please provide your Transport Expenses.");
+      return;
+    }
+
+    setSaving(true);
 
     try {
       await axios.patch(
@@ -47,6 +72,8 @@ export default function BudgetPlannerSection({ onNext, onBack, formData, updateF
     } catch (error) {
       console.error("❌ ERROR SAVING BUDGET:", error.response?.data || error);
       alert("Failed to save data. Please try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -61,7 +88,7 @@ export default function BudgetPlannerSection({ onNext, onBack, formData, updateF
         <div className="budget-grid">
           <input
             name="netSalary"
-            placeholder="💵 Net Salary"
+            placeholder="💵 Net Salary *"
             className="budget-input"
             value={budgetDetails.netSalary}
             onChange={handleChange}
@@ -88,21 +115,21 @@ export default function BudgetPlannerSection({ onNext, onBack, formData, updateF
         <div className="budget-grid">
           <input
             name="householdExpenses"
-            placeholder="🏠 Household Expenses"
+            placeholder="🏠 Household Expenses *"
             className="budget-input"
             value={budgetDetails.householdExpenses}
             onChange={handleChange}
           />
           <input
             name="rentalExpenses"
-            placeholder="🏘️ Rental Expenses"
+            placeholder="🏘️ Rental Expenses *"
             className="budget-input"
             value={budgetDetails.rentalExpenses}
             onChange={handleChange}
           />
           <input
             name="transportExpenses"
-            placeholder="🚗 Transport Expenses"
+            placeholder="🚗 Transport Expenses *"
             className="budget-input"
             value={budgetDetails.transportExpenses}
             onChange={handleChange}
@@ -121,14 +148,16 @@ export default function BudgetPlannerSection({ onNext, onBack, formData, updateF
         <button
           onClick={handleBack}
           className="budget-button budget-button-back"
+          disabled={saving}
         >
           ⬅️ Back
         </button>
         <button
           onClick={handleNext}
           className="budget-button budget-button-next"
+          disabled={saving}
         >
-          ➡️ Next
+          {saving ? "Saving..." : "➡️ Next"}
         </button>
       </div>
     </Section>

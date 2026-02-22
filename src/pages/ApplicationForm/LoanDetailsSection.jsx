@@ -14,6 +14,8 @@ export default function LoanDetailsSection({ onNext, onBack, formData, updateFor
     loanSecurity: "",
   });
 
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     updateFormData("loanDetails", loanDetails);
   }, [loanDetails]);
@@ -30,6 +32,25 @@ export default function LoanDetailsSection({ onNext, onBack, formData, updateFor
       return;
     }
 
+    // --- Validation Requirements ---
+    const requiredFields = [
+      { id: "universityName", label: "University / College Name" },
+      { id: "studyProgram", label: "Study Program" },
+      { id: "levelOfStudy", label: "Level of Study" },
+      { id: "amountApplied", label: "Amount Applied" },
+      { id: "repaymentPeriod", label: "Repayment Period" },
+      { id: "loanSecurity", label: "Loan Security" },
+    ];
+
+    for (let field of requiredFields) {
+      if (!loanDetails[field.id] || loanDetails[field.id].trim() === "") {
+        alert(`Required: Please provide the ${field.label}.`);
+        return;
+      }
+    }
+
+    setSaving(true);
+
     try {
       await axios.patch(
         `${API_BASE_URL}/admin/students/update-details`,
@@ -41,10 +62,13 @@ export default function LoanDetailsSection({ onNext, onBack, formData, updateFor
           },
         }
       );
+      console.log("✅ LOAN DETAILS SAVED");
       onNext();
     } catch (error) {
       console.error("Failed to save loan details:", error);
       alert("Failed to save loan details. Please try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -57,42 +81,42 @@ export default function LoanDetailsSection({ onNext, onBack, formData, updateFor
       <div className="loan-grid">
         <input
           name="universityName"
-          placeholder="🎓 University / College Name"
+          placeholder="🎓 University / College Name *"
           value={loanDetails.universityName}
           onChange={handleChange}
           className="loan-input"
         />
         <input
           name="studyProgram"
-          placeholder="📚 Study Program"
+          placeholder="📚 Study Program *"
           value={loanDetails.studyProgram}
           onChange={handleChange}
           className="loan-input"
         />
         <input
           name="levelOfStudy"
-          placeholder="📖 Level of Study (Sem 1, Sem 2)"
+          placeholder="📖 Level of Study (Sem 1, Sem 2) *"
           value={loanDetails.levelOfStudy}
           onChange={handleChange}
           className="loan-input"
         />
         <input
           name="amountApplied"
-          placeholder="💵 Amount Applied (Ksh)"
+          placeholder="💵 Amount Applied (Ksh) *"
           value={loanDetails.amountApplied}
           onChange={handleChange}
           className="loan-input"
         />
         <input
           name="repaymentPeriod"
-          placeholder="⏰ Repayment Period"
+          placeholder="⏰ Repayment Period *"
           value={loanDetails.repaymentPeriod}
           onChange={handleChange}
           className="loan-input"
         />
         <input
           name="loanSecurity"
-          placeholder="🔒 Loan Security (Guarantor / Collateral)"
+          placeholder="🔒 Loan Security (Guarantor / Collateral) *"
           value={loanDetails.loanSecurity}
           onChange={handleChange}
           className="loan-input"
@@ -100,11 +124,19 @@ export default function LoanDetailsSection({ onNext, onBack, formData, updateFor
       </div>
 
       <div className="loan-buttons">
-        <button onClick={handleBack} className="loan-button loan-button-back">
+        <button 
+          onClick={handleBack} 
+          className="loan-button loan-button-back"
+          disabled={saving}
+        >
           ⬅️ Back
         </button>
-        <button onClick={handleNext} className="loan-button loan-button-next">
-          ➡️ Next
+        <button 
+          onClick={handleNext} 
+          className="loan-button loan-button-next"
+          disabled={saving}
+        >
+          {saving ? "Saving..." : "➡️ Next"}
         </button>
       </div>
     </Section>

@@ -5,20 +5,26 @@ import Section from "../../components/Section";
 const API_BASE_URL = "http://127.0.0.1:5000";
 
 export default function RecommendationsSection({ onNext, onBack, formData, updateFormData }) {
-  // Initialize file and uploaded URL from formData for persistence
-  const [recommendationFile, setRecommendationFile] = useState(null);
+  // Logic to skip for postgraduates
+  useEffect(() => {
+    const level = formData.personalDetails?.levelOfStudy || "";
+    if (level.toLowerCase().includes("postgraduate") || level.toLowerCase().includes("masters") || level.toLowerCase().includes("phd")) {
+      onNext(); 
+    }
+  }, [formData.personalDetails?.levelOfStudy, onNext]);
+
+  // Initialize uploaded URL from formData for persistence
   const [uploadedUrl, setUploadedUrl] = useState(formData.recommendations?.chiefAndImamRecommendation || "");
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    // Sync uploaded URL with parent
+    // Sync uploaded URL with parent state
     updateFormData("recommendations", { chiefAndImamRecommendation: uploadedUrl });
   }, [uploadedUrl]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setRecommendationFile(file);
       uploadFile(file);
     }
   };
@@ -59,8 +65,9 @@ export default function RecommendationsSection({ onNext, onBack, formData, updat
   };
 
   const handleNext = async () => {
+    // Strictly required for non-postgraduates
     if (!uploadedUrl) {
-      alert("Please upload the recommendation document before proceeding.");
+      alert("Required: Please upload the Chief & Imam recommendation document.");
       return;
     }
 
@@ -81,7 +88,7 @@ export default function RecommendationsSection({ onNext, onBack, formData, updat
           },
         }
       );
-      console.log("✅ RECOMMENDATION SAVED");
+      console.log("✅ RECOMMENDATION SAVED TO CLOUD");
       onNext();
     } catch (error) {
       console.error("❌ ERROR SAVING RECOMMENDATION:", error);
@@ -96,13 +103,15 @@ export default function RecommendationsSection({ onNext, onBack, formData, updat
   return (
     <Section title="J & K. Community Recommendations" className="rec-section">
       <p className="rec-text">
-        📝 Upload the stamped and signed Chief and Imam recommendation.
+        📝 Upload the stamped and signed Chief and Imam recommendation. 
+        <br />
+        <small>(Required for undergraduate/diploma applicants)</small>
       </p>
 
       <div className="rec-grid">
         <div className="rec-item">
           <label className="rec-label">
-            📄 Chief & Imam Recommendation (PDF/Image)
+            📄 Chief & Imam Recommendation (PDF/Image) <span style={{color: 'red'}}>*</span>
           </label>
           <input
             type="file"
@@ -112,12 +121,12 @@ export default function RecommendationsSection({ onNext, onBack, formData, updat
           />
           {uploading && (
             <p style={{ color: "blue", fontSize: "12px", marginTop: "5px" }}>
-              ⏳ Uploading...
+              ⏳ Syncing with cloud...
             </p>
           )}
           {uploadedUrl && !uploading && (
             <p style={{ color: "green", fontSize: "12px", marginTop: "5px" }}>
-              ✅ Uploaded successfully
+              ✅ Retrieved from cloud | <a href={uploadedUrl} target="_blank" rel="noreferrer" style={{color: '#2d6a9f', fontWeight: 'bold', textDecoration: 'underline'}}>View File</a>
             </p>
           )}
         </div>
@@ -127,13 +136,14 @@ export default function RecommendationsSection({ onNext, onBack, formData, updat
         <button
           onClick={handleBack}
           className="rec-button rec-button-back"
+          disabled={uploading}
         >
           ⬅️ Back
         </button>
         <button
           onClick={handleNext}
           className="rec-button rec-button-next"
-          disabled={uploading || !uploadedUrl}
+          disabled={uploading}
         >
           {uploading ? "Uploading..." : "➡️ Next"}
         </button>

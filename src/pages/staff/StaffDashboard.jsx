@@ -303,6 +303,20 @@ export default function StaffDashboard() {
                 <p><strong>Period:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "secondary", "period"]) || "N/A"}</p>
                 <p><strong>Grade:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "secondary", "grade"]) || "N/A"}</p>
 
+                {/* Tertiary / University (Postgraduate Applicants) */}
+  {getDetailValue(selectedStudent.details, ["educationalQualifications", "tertiary"]) && (
+    <div className="edu-block" style={{ marginTop: '15px', padding: '10px', borderLeft: '4px solid #007bff', backgroundColor: '#f0f7ff' }}>
+      <h3>University / Tertiary (Last Education)</h3>
+      <div className="grid-2">
+        <p><strong>Institution:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "tertiary", "schoolName"]) || "N/A"}</p>
+        <p><strong>Course/Level:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "tertiary", "level"]) || "N/A"}</p>
+        <p><strong>Period:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "tertiary", "period"]) || "N/A"}</p>
+        <p><strong>Grade/Class:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "tertiary", "grade"]) || "N/A"}</p>
+      </div>
+    </div>
+  )}
+
+
                 <h2>Parent / Guardian</h2>
                 <p><strong>Name:</strong> {getDetailValue(selectedStudent.details, ["parentGuardian", "parentName"]) || "N/A"}</p>
                 <p><strong>Relationship:</strong> {getDetailValue(selectedStudent.details, ["parentGuardian", "relationship"]) || "N/A"}</p>
@@ -520,39 +534,44 @@ export default function StaffDashboard() {
                 </div>
 
                 <h2>Student Requirements Documents</h2>
-                {(() => {
-                  const docs = getDetailValue(selectedStudent.details, ["documentsUploaded"]);
-                  if (!docs) return <p>No documents uploaded.</p>;
-                  
-                  const docLabels = {
-                    cv: "📄 Curriculum Vitae (CV)",
-                    form4Certificate: "📜 Form 4 Certificate",
-                    schoolLeavingCertificate: "🏫 School Leaving Certificate",
-                    admissionLetter: "🎓 University Admission Letter",
-                    nationalID: "🆔 National ID",
-                    kraPinDoc: "📋 KRA PIN Document",
-                    passportPhoto: "📸 Passport Size Photo",
-                    loanEssay: "✍️ Loan Justification Essay"
-                  };
+{(() => {
+  const docs = getDetailValue(selectedStudent.details, ["documentsUploaded"]);
+  if (!docs) return <p>No documents uploaded.</p>;
+  
+  const docLabels = {
+    cv: "📄 Curriculum Vitae (CV)",
+    form4Certificate: "📜 Form 4 Certificate",
+    schoolLeavingCertificate: "🏫 School Leaving Certificate",
+    admissionLetter: "🎓 University Admission Letter",
+    nationalID: "🆔 National ID",
+    kraPinDoc: "📋 KRA PIN Document",
+    passportPhoto: "📸 Passport Size Photo",
+    loanEssay: "✍️ Loan Justification Essay",
+    // Postgraduate specific labels
+    bachelorsDegree: "🎓 Bachelor's Degree Certificate",
+    transcript: "📊 Academic Transcripts"
+  };
 
-                  const uploadedDocs = Object.entries(docs).filter(([_, url]) => url);
-                  
-                  return uploadedDocs.length > 0 ? (
-                    <div>
-                      {uploadedDocs.map(([key, url]) => (
-                        <p key={key}>
-                          <strong>{docLabels[key]}:</strong>{" "}
-                          <a href={url} target="_blank" rel="noopener noreferrer" download>
-                            📥 View/Download
-                          </a>
-                        </p>
-                      ))}
-                    </div>
-                  ) : (
-                    <p>No documents uploaded.</p>
-                  );
-                })()}
+  const uploadedDocs = Object.entries(docs).filter(([_, url]) => url);
+  
+  return uploadedDocs.length > 0 ? (
+    <div className="doc-grid">
+      {uploadedDocs.map(([key, url]) => (
+        <p key={key}>
+          <strong>{docLabels[key] || `📄 ${key.replace(/([A-Z])/g, ' $1').trim()}`}:</strong>{" "}
+          <a href={url} target="_blank" rel="noopener noreferrer" download>
+            📥 View/Download
+          </a>
+        </p>
+      ))}
+    </div>
+  ) : (
+    <p>No documents uploaded.</p>
+  );
+})()}
 
+                
+                
                 <h2>Community Recommendations</h2>
                 {getDetailValue(selectedStudent.details, ["recommendations", "chiefAndImamRecommendation"]) ? (
                   <p>
@@ -639,6 +658,40 @@ export default function StaffDashboard() {
                 ) : (
                   <p>No guarantors added.</p>
                 )}
+
+                <h2>Siblings / Children Still Studying</h2>
+{selectedStudent.details?.siblings && selectedStudent.details.siblings.length > 0 ? (
+  <table className="print-table" style={{ width: '100%', marginBottom: '20px' }}>
+    <thead>
+      <tr style={{ textAlign: 'left', backgroundColor: '#f9f9f9' }}>
+        <th>Name</th>
+        <th>Institution</th>
+        <th>Level</th>
+        <th>Yearly Fees (KSh)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {selectedStudent.details.siblings.map((sib, i) => (
+        <tr key={i}>
+          <td>{sib.name || "N/A"}</td>
+          <td>{sib.institution || "N/A"}</td>
+          <td>{sib.level || "N/A"}</td>
+          <td>{sib.yearlyFees ? parseInt(sib.yearlyFees).toLocaleString() : "0"}</td>
+        </tr>
+      ))}
+      <tr style={{ fontWeight: 'bold', borderTop: '2px solid #eee' }}>
+        <td colSpan="3" style={{ textAlign: 'right' }}>Total Sibling Fee Burden:</td>
+        <td>
+          {selectedStudent.details.siblings
+            .reduce((sum, s) => sum + (parseInt(s.yearlyFees) || 0), 0)
+            .toLocaleString()}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+) : (
+  <p>No sibling details provided.</p>
+)}
 
                 <h2>Consent Form</h2>
                 {getDetailValue(selectedStudent.details, ["consentForm"]) ? (
