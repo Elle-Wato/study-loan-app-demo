@@ -749,3 +749,87 @@ body.printing .printable-application {
   page-break-before: always;
 }
 
+/* Container for the entire filter area */
+.search-bar-container {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap; /* Ensures it looks good on mobile */
+  border: 1px solid #e0e0e0;
+}
+
+/* Individual labels (like "Date Submitted:") */
+.search-bar-container label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #444;
+}
+
+/* Styling for Text and Date Inputs */
+.search-input {
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 200px;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+/* Dropdown/Select styling */
+.filter-select {
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+/* The Reset Button */
+.reset-btn {
+  padding: 10px 18px;
+  background-color: #f8f9fa;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reset-btn:hover {
+  background-color: #e2e6ea;
+  border-color: #adb5bd;
+}
+
+/* Responsive adjustment for smaller screens */
+@media (max-width: 768px) {
+  .search-bar-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-input, 
+  .filter-select, 
+  .reset-btn {
+    width: 100%;
+  }
+}
+

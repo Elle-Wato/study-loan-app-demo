@@ -58,10 +58,40 @@ export default function ParentGuardianSection({ onNext, onBack, formData, update
   };
 
   const handleNext = async () => {
-    if (!parentGuardian.parentName || !parentGuardian.telephone) {
-      alert("Please fill in the required fields.");
-      return;
+    // 1. Define Required Text Fields
+    const requiredFields = [
+      { id: "parentName", label: "Parent/Guardian Full Name" },
+      { id: "relationship", label: "Relationship" },
+      { id: "idNumber", label: "ID Number" },
+      { id: "kraPin", label: "KRA PIN" },
+      { id: "telephone", label: "Telephone Number" },
+      { id: "residentialAddress", label: "Residential Address" },
+      { id: "emailAddress", label: "Email Address" },
+    ];
+
+    // Check Text Fields
+    for (let field of requiredFields) {
+      if (!parentGuardian[field.id]) {
+        alert(`Required: Please enter the ${field.label}.`);
+        return;
+      }
     }
+
+    // 2. Define Required Documents
+    const requiredDocs = [
+      { id: "idCopy", label: "Copy of ID" },
+      { id: "kraPinCopy", label: "Copy of KRA PIN" },
+      { id: "passportPhoto", label: "Passport Size Photo" },
+    ];
+
+    // Check Document Uploads
+    for (let doc of requiredDocs) {
+      if (!uploadedUrls[doc.id]) {
+        alert(`Required: Please upload the ${doc.label} for the person paying the loan.`);
+        return;
+      }
+    }
+
     try {
       await studentAPI.updateDetails({
         parentGuardian,
@@ -110,14 +140,14 @@ export default function ParentGuardianSection({ onNext, onBack, formData, update
       {/* ── FORM FIELDS ── */}
       <div className="parent-grid">
         {[
-          { name: "parentName", placeholder: "👨‍👩‍👧 Full Name of Parent / Guardian", type: "text", required: true },
-          { name: "relationship", placeholder: "👪 Relationship", type: "text" },
-          { name: "idNumber", placeholder: "🆔 ID Number", type: "text" },
-          { name: "kraPin", placeholder: "📋 KRA PIN", type: "text" },
-          { name: "telephone", placeholder: "📞 Telephone Number", type: "tel", required: true },
+          { name: "parentName", placeholder: "👨‍👩‍👧 Full Name of Parent / Guardian *", type: "text" },
+          { name: "relationship", placeholder: "👪 Relationship *", type: "text" },
+          { name: "idNumber", placeholder: "🆔 ID Number *", type: "text" },
+          { name: "kraPin", placeholder: "📋 KRA PIN *", type: "text" },
+          { name: "telephone", placeholder: "📞 Telephone Number *", type: "tel" },
           { name: "numberOfChildren", placeholder: "👶 Number of Children", type: "number" },
-          { name: "residentialAddress", placeholder: "🏠 Residential Address", type: "text" },
-          { name: "emailAddress", placeholder: "📧 Email Address", type: "email" },
+          { name: "residentialAddress", placeholder: "🏠 Residential Address *", type: "text" },
+          { name: "emailAddress", placeholder: "📧 Email Address *", type: "email" },
           { name: "placeOfWork", placeholder: "🏢 Place of Work", type: "text" },
         ].map(({ name, placeholder, type }) => (
           <input
@@ -135,15 +165,23 @@ export default function ParentGuardianSection({ onNext, onBack, formData, update
       </div>
 
       {/* ── DOCUMENT UPLOADS ── */}
-      <h4 className="parent-subtitle">📎 Required Attachments</h4>
-      <div className="parent-grid">
+      <div style={{ marginTop: "30px", padding: "15px", background: "#f9fafb", borderRadius: "8px", border: "1px solid #e5e7eb" }}>
+        <h4 className="parent-subtitle" style={{ margin: 0 }}>📎 Required Attachments</h4>
+        <p style={{ fontSize: "13px", color: "#6b7280", marginTop: "5px" }}>
+          Please upload the following documents <strong>for the person responsible for paying the loan</strong>.
+        </p>
+      </div>
+
+      <div className="parent-grid" style={{ marginTop: "15px" }}>
         {[
           { name: "idCopy", label: "🆔 Copy of ID", accept: ".pdf,.jpg,.png" },
           { name: "kraPinCopy", label: "📋 Copy of KRA PIN", accept: ".pdf,.jpg,.png" },
           { name: "passportPhoto", label: "📸 Passport Size Photo", accept: ".jpg,.png" },
         ].map(({ name, label, accept }) => (
           <div className="parent-field" key={name}>
-            <label className="parent-label">{label}</label>
+            <label className="parent-label">
+              {label} <span style={{ color: "red" }}>*</span>
+            </label>
             <input
               type="file"
               name={name}
@@ -174,7 +212,7 @@ export default function ParentGuardianSection({ onNext, onBack, formData, update
       </div>
 
       {/* ── BUTTONS ── */}
-      <div className="parent-buttons">
+      <div className="parent-buttons" style={{ marginTop: "30px" }}>
         <button onClick={onBack} className="parent-button parent-button-back">
           ⬅️ Back
         </button>
