@@ -199,13 +199,13 @@ export default function StaffDashboard() {
             </thead>
             <tbody>
               {filteredStudents.map((s, index) => (
-                <tr key={s.id}>
-                  <td>{index + 1}</td>
-                  <td>{getStudentName(s)}</td>
-                  <td>{getStudentProgram(s)}</td>
-                  <td className={`status ${s.status}`}>
-                    {s.status.toUpperCase()}
-                  </td>
+  <tr key={s.submission_id || s.id || index}> 
+    <td>{index + 1}</td>
+    <td>{getStudentName(s)}</td>
+    <td>{getStudentProgram(s)}</td>
+    <td className={`status ${s.status}`}>
+      {s.status ? s.status.toUpperCase() : 'PENDING'}
+    </td>
                   <td>{s.submitted_at ? new Date(s.submitted_at).toLocaleDateString() : "N/A"}</td>
                   <td>
                     <button className="approve-btn" onClick={() => updateStatus(s.id, "approved")}>Approve</button>
@@ -303,18 +303,19 @@ export default function StaffDashboard() {
                 <p><strong>Period:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "secondary", "period"]) || "N/A"}</p>
                 <p><strong>Grade:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "secondary", "grade"]) || "N/A"}</p>
 
-                {/* Tertiary / University (Postgraduate Applicants) */}
-  {getDetailValue(selectedStudent.details, ["educationalQualifications", "tertiary"]) && (
-    <div className="edu-block" style={{ marginTop: '15px', padding: '10px', borderLeft: '4px solid #007bff', backgroundColor: '#f0f7ff' }}>
-      <h3>University / Tertiary (Last Education)</h3>
-      <div className="grid-2">
-        <p><strong>Institution:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "tertiary", "schoolName"]) || "N/A"}</p>
-        <p><strong>Course/Level:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "tertiary", "level"]) || "N/A"}</p>
-        <p><strong>Period:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "tertiary", "period"]) || "N/A"}</p>
-        <p><strong>Grade/Class:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "tertiary", "grade"]) || "N/A"}</p>
-      </div>
+       {/* Tertiary / University (Postgraduate Applicants) */}
+{getDetailValue(selectedStudent.details, ["educationalQualifications", "postSecondary"]) && (
+  <div className="edu-block" style={{ marginTop: '15px', padding: '10px', borderLeft: '4px solid #007bff', backgroundColor: '#f0f7ff' }}>
+    <h3>University / Tertiary (Last Education)</h3>
+    <div className="grid-2">
+      {/* Changed "tertiary" to "postSecondary" below */}
+      <p><strong>Institution:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "postSecondary", "schoolName"]) || "N/A"}</p>
+      <p><strong>Course/Level:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "postSecondary", "level"]) || "N/A"}</p>
+      <p><strong>Period:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "postSecondary", "period"]) || "N/A"}</p>
+      <p><strong>Grade/Class:</strong> {getDetailValue(selectedStudent.details, ["educationalQualifications", "postSecondary", "grade"]) || "N/A"}</p>
     </div>
-  )}
+  </div>
+)}
 
 
                 <h2>Parent / Guardian</h2>

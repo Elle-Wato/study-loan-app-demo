@@ -22,11 +22,16 @@ def admin_or_staff_required():
     return None
 
 def serialize_student(student, submission=None):
+    # Extract program type from the JSON details
+    details = student.details or {}
+    program = details.get('program', 'N/A').replace('_', ' ').title()
+
     return {
         'id': student.id,
-        'name': student.name or 'N/A',
+        'submission_id': submission.id if submission else None, # Add this!
+        'name': f"{student.name} ({program})", # Helpful for the staff to see the level
         'email': student.user.email if student.user else 'N/A',
-        'details': student.details or {},
+        'details': details,
         'status': submission.status if submission else 'pending',
         'submitted_at': submission.submitted_at.isoformat() if submission and submission.submitted_at else None,
         'is_locked': submission.is_locked if submission else False,
@@ -119,36 +124,28 @@ def get_users():
 def get_students():
     try:
         error = admin_or_staff_required()
-        if error:
-            return error
+        if error: return error
 
-        # Subquery: get latest submission per student
-        latest_subq = db.session.query(
-            Submission.student_id,
-            func.max(Submission.submitted_at).label('latest_submitted_at')
-        ).group_by(Submission.student_id).subquery()
+        # 1. Subquery to find the LATEST Student ID for each User
+        subq = db.session.query(
+            Student.user_id,
+            func.max(Student.id).label('latest_id')
+        ).group_by(Student.user_id).subquery()
 
-        LatestSubmission = aliased(Submission)
+        # 2. Join Submission -> Student -> Subquery
+        # This filters out all old student records and duplicate submissions
+        rows = db.session.query(Student, Submission)\
+            .join(subq, Student.id == subq.c.latest_id)\
+            .join(Submission, Submission.student_id == Student.id)\
+            .order_by(Submission.submitted_at.desc())\
+            .all()
 
-        rows = db.session.query(
-            Student,
-            LatestSubmission
-        ).outerjoin(
-            latest_subq,
-            Student.id == latest_subq.c.student_id
-        ).outerjoin(
-            LatestSubmission,
-            and_(
-                LatestSubmission.student_id == latest_subq.c.student_id,
-                LatestSubmission.submitted_at == latest_subq.c.latest_submitted_at
-            )
-        ).all()
-
+        # 3. Serialize
         result = [serialize_student(student, submission) for student, submission in rows]
         return jsonify(result)
 
     except Exception as e:
-        print("Error fetching students:", str(e))
+        print("Error:", str(e))
         return jsonify({'error': 'Internal server error'}), 500
 
 # -------------------------------------------------------------------
@@ -192,7 +189,7 @@ def update_student_details():
         if not user or user.role != 'student':
             return jsonify({'error': 'Unauthorized'}), 403
 
-        student = Student.query.filter_by(user_id=user.id).first()
+        student = Student.query.filter_by(user_id=user.id).order_by(Student.id.desc()).first()
         if not student:
             return jsonify({'error': 'Student profile not found'}), 404
 
@@ -265,7 +262,7 @@ def submission_status():
         if not user:
             return jsonify({"is_locked": False}), 404
 
-        student = Student.query.filter_by(user_id=user.id).first()
+        student = Student.query.filter_by(user_id=user.id).order_by(Student.id.desc()).first()
         if not student:
             return jsonify({"is_locked": False, "details": {}})
 
