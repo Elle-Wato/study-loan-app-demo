@@ -7,14 +7,19 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), default='student')  # student, staff, admin
+    role = db.Column(db.String(20), default='student')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
-    student = db.relationship('Student', backref='user', uselist=False)
-    staff = db.relationship('Staff', backref='user', uselist=False, foreign_keys='Staff.user_id')
+    # --- ADD THESE TWO LINES ---
+    is_verified = db.Column(db.Boolean, default=False)
+    verification_token = db.Column(db.String(100), unique=True, nullable=True)
+    # ---------------------------
+
+    # Relationships (Keep your existing ones)
+    student = db.relationship('Student', backref='user', uselist=False, cascade='all, delete-orphan')
+    staff = db.relationship('Staff', backref='user', uselist=False, foreign_keys='Staff.user_id', cascade='all, delete-orphan')
     admin_staff = db.relationship('Staff', backref='admin', uselist=False, foreign_keys='Staff.admin_id')
-    
+
     def __repr__(self):
         return f'<User {self.email}>'
 

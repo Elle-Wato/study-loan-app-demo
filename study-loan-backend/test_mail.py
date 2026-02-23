@@ -6,10 +6,10 @@ load_dotenv()
 
 # Manually testing the connection
 try:
-    server = smtplib.SMTP('mail.elimishatrust.or.ke', 587)
+    server = smtplib.SMTP('smtp.gmail.com', 465)
     server.starttls()
     # Replace os.getenv with your actual password string just for this 10-second test
-    server.login('wato@elimishatrust.or.ke', os.getenv('MAIL_PASSWORD'))
+    server.login('elimishatrust2@gmail.com', os.getenv('MAIL_PASSWORD'))
     print("✅ SUCCESS: The credentials work!")
     server.quit()
 except Exception as e:

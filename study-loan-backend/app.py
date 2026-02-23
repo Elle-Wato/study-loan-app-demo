@@ -20,14 +20,18 @@ load_dotenv()
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# Allow your React app to talk to your Flask app
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+
 # ── SMTP CONFIGURATION (cPanel) ──
-app.config['MAIL_SERVER'] = 'mail.elimishatrust.or.ke'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_SSL'] = False  # Explicitly False when using TLS on 587
-app.config['MAIL_USE_TLS'] = True  
-app.config['MAIL_USERNAME'] = 'wato@elimishatrust.or.ke'
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = 'elimishatrust2@gmail.com'
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = ('Elimisha Trust', 'wato@elimishatrust.or.ke')
+app.config['MAIL_DEFAULT_SENDER'] = 'elimishatrust2@gmail.com'
+
 
 print("--- MAIL DEBUG ---")
 print(f"Server: {app.config['MAIL_SERVER']}")

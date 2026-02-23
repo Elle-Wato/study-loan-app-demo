@@ -1,17 +1,37 @@
-from app import app, db  # Import app and db from app.py
-from models import User, Staff  # Import models from models.py
+import os
+from dotenv import load_dotenv
+from app import app, db 
+from models import User, Staff 
 from werkzeug.security import generate_password_hash
 
-with app.app_context():  # Crucial: Wrap in app context for DB operations
-    with db.session.begin():
-        staff_user = User(
-            email='staff@example.com',  # Change to a real email if needed
-            password_hash=generate_password_hash('password123'),  # Change to a secure password
-            role='staff'
-        )
-        db.session.add(staff_user)
-        db.session.flush()  # Get the user ID after adding
-        staff_profile = Staff(user_id=staff_user.id, admin_id=None)  # admin_id is optional
-        db.session.add(staff_profile)
-    
-    print("Staff user created successfully!")
+# Load the variables from .env
+load_dotenv()
+
+with app.app_context(): 
+    staff_email = os.getenv('STAFF_EMAIL')
+    staff_pass = os.getenv('STAFF_PASSWORD')
+
+    if not staff_email or not staff_pass:
+        print("Error: STAFF_EMAIL or STAFF_PASSWORD not found in .env")
+    else:
+        existing_user = User.query.filter_by(email=staff_email).first()
+        if existing_user:
+            # Update existing user password just in case
+            existing_user.password_hash = generate_password_hash(staff_pass)
+            existing_user.is_verified = True
+            db.session.commit()
+            print(f"Updated password for existing staff: {staff_email}")
+        else:
+            staff_user = User(
+                email=staff_email, 
+                password_hash=generate_password_hash(staff_pass), 
+                role='staff',
+                is_verified=True
+            )
+            db.session.add(staff_user)
+            db.session.flush() 
+            
+            staff_profile = Staff(user_id=staff_user.id) 
+            db.session.add(staff_profile)
+            db.session.commit()
+            print(f"Created and verified new staff: {staff_email}")
