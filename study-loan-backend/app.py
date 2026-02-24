@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+application = app
 app.config.from_object(Config)
 
 # Allow your React app to talk to your Flask app

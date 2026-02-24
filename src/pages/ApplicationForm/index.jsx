@@ -137,13 +137,22 @@ export default function ApplicationForm() {
 
   // 2. If Locked, show the Success/Receipt screen ONLY
  if (isLocked) {
-    // 1. Create a helper to find data even if it's nested differently
+    const pDetails = formData?.personalDetails || {};
+    const sDetails = formData?.student || {};
+
     const studentName = 
-      (formData.personalDetails?.firstName || formData.student?.firstName || "N/A") + " " + 
-      (formData.personalDetails?.lastName || formData.student?.lastName || "");
-    
-    const idNo = formData.personalDetails?.idNumber || formData.student?.id_number || "N/A";
-    const programName = formData.program || "Loan Application";
+      formData.personalDetails?.fullName || 
+      formData.details?.personalDetails?.fullName || 
+      formData.student?.name || 
+      "N/A";
+
+    const idNo = 
+      pDetails?.idNumber || 
+      pDetails?.idPassportNo || 
+      sDetails?.id_number || 
+      "N/A";
+
+    const programName = formData?.program || "Loan Application";
 
     return (
       <div style={{ maxWidth: "800px", margin: "50px auto", padding: "20px" }}>
@@ -178,9 +187,9 @@ export default function ApplicationForm() {
 
           <div style={{ margin: "30px 0", lineHeight: "2" }}>
             <p style={{ borderBottom: "1px solid #eee" }}><strong>Submission Date:</strong> {new Date().toLocaleDateString()}</p>
-            <p style={{ borderBottom: "1px solid #eee" }}><strong>Student Name:</strong> {studentName}</p>
-            <p style={{ borderBottom: "1px solid #eee" }}><strong>ID/Passport Number:</strong> {idNo}</p>
-            <p style={{ borderBottom: "1px solid #eee" }}><strong>Academic Program:</strong> {programName}</p>
+           <p style={{ borderBottom: "1px solid #eee" }}><strong>Student Name:</strong> {studentName}</p>
+           <p style={{ borderBottom: "1px solid #eee" }}><strong>ID/Passport Number:</strong> {idNo}</p>
+           <p style={{ borderBottom: "1px solid #eee" }}><strong>Academic Program:</strong> {programName}</p>
           </div>
           
           <table style={{ width: "100%", marginTop: "20px", borderCollapse: "collapse", border: "1px solid #000" }}>
