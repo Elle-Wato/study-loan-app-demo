@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import SignaturePad from "signature_pad";
 
-const API_BASE_URL = "http://127.0.0.1:5000";
+const API_BASE_URL = "https://api.elimishatrust.or.ke/";
 
 const ConsentPage = ({ onBack, formData, updateFormData }) => {
   const navigate = useNavigate();

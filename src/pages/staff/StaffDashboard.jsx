@@ -5,7 +5,7 @@ import { useReactToPrint } from "react-to-print";
 import logo from "../../assets/logo.png";
 import "./StaffDashboard.css";
 
-const API_BASE_URL = "http://127.0.0.1:5000";
+const API_BASE_URL = "https://api.elimishatrust.or.ke/";
 
 export default function StaffDashboard() {
   const navigate = useNavigate();

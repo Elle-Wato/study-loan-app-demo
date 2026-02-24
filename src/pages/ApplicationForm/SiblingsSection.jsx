@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Section from "../../components/Section";
 
-const API_BASE_URL = "http://127.0.0.1:5000";
+const API_BASE_URL = "https://api.elimishatrust.or.ke/";
 
 export default function SiblingsSection({ onNext, onBack, formData, updateFormData }) {
   // Initialize state from formData if it exists, otherwise start with one empty row

@@ -4,7 +4,7 @@ import axios from "axios";
 import logo from "../assets/logo.png";
 import { useEffect } from "react";
 
-const API_BASE_URL = "http://127.0.0.1:5000";  // Update to your deployed backend URL later
+const API_BASE_URL = "https://api.elimishatrust.or.ke/";  // Update to your deployed backend URL later
 
 export default function Login() {
   const navigate = useNavigate();

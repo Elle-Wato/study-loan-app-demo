@@ -3,7 +3,7 @@ import { useState } from "react";
 import axios from "axios"; 
 import logo from "../assets/logo.png";
 
-const API_BASE_URL = "http://127.0.0.1:5000"; 
+const API_BASE_URL = "https://api.elimishatrust.or.ke/"; 
 
 export default function Register() {
   const navigate = useNavigate();
