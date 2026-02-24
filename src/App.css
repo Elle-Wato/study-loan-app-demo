@@ -69,3 +69,27 @@
   display: flex;
   gap: 10px;
 }
+/* Add this to the bottom of your App.css */
+@media print {
+  /* Hide the buttons and the loading text */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset the body so it doesn't try to center everything on the paper */
+  body, #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    background: white !important;
+  }
+
+  /* Ensure the receipt takes up the full width of the paper */
+  #receipt-to-print {
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "../assets/logo.png";
+import { useEffect } from "react";
 
 const API_BASE_URL = "http://127.0.0.1:5000";  // Update to your deployed backend URL later
 
@@ -12,6 +13,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("verified") === "true") {
+    setSuccess("Email verified successfully! You can now log in.");
+  }
+}, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -29,7 +37,7 @@ export default function Login() {
         headers: {
           'Content-Type': 'application/json'
         },
-        timeout: 10000
+        timeout: 30000
       });
 
       console.log('Full login response:', response.data);

@@ -28,7 +28,7 @@ def send_notification_email(student_name, program):
     try:
         msg = Message(
             subject=f"🚀 New Application: {student_name}",
-            recipients=["wato@elimishatrust.or.ke"],
+            recipients=["applications@elimishatrust.or.ke"],
             body=f"""
 Hello Team,
 

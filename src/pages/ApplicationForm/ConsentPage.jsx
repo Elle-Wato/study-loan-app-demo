@@ -137,7 +137,7 @@ const ConsentPage = ({ onBack, formData, updateFormData }) => {
 
       alert("Application submitted successfully!");
       localStorage.removeItem("currentStep");
-      navigate("/success");
+      window.location.reload(); // This forces the Parent to run 'checkLockStatus' again
     } catch (error) {
       console.error("❌ Submission error:", error.response?.data || error);
       alert(error.response?.data?.error || "Failed to submit. Please try again.");
